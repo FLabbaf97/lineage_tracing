@@ -1,0 +1,421 @@
+@article {Stringer2020.02.02.931238,
+	author = {Stringer, Carsen and Michaelos, Michalis and Pachitariu, Marius},
+	title = {Cellpose: a generalist algorithm for cellular segmentation},
+	elocation-id = {2020.02.02.931238},
+	year = {2020},
+	doi = {10.1101/2020.02.02.931238},
+	publisher = {Cold Spring Harbor Laboratory},
+	abstract = {Many biological applications require the segmentation of cell bodies, membranes and nuclei from microscopy images. Deep learning has enabled great progress on this problem, but current methods are specialized for images that have large training datasets. Here we introduce a generalist, deep learning-based segmentation algorithm called Cellpose, which can very precisely segment a wide range of image types out-of-the-box and does not require model retraining or parameter adjustments. We trained Cellpose on a new dataset of highly-varied images of cells, containing over 70,000 segmented objects. To support community contributions to the training data, we developed software for manual labelling and for curation of the automated results, with optional direct upload to our data repository. Periodically retraining the model on the community-contributed data will ensure that Cellpose improves constantly.},
+	URL = {https://www.biorxiv.org/content/early/2020/02/03/2020.02.02.931238},
+	eprint = {https://www.biorxiv.org/content/early/2020/02/03/2020.02.02.931238.full.pdf},
+	journal = {bioRxiv}
+}
+
+
+
+@article{kipf_semi-supervised_2017,
+	title = {Semi-{Supervised} {Classification} with {Graph} {Convolutional} {Networks}},
+	url = {http://arxiv.org/abs/1609.02907},
+	abstract = {We present a scalable approach for semi-supervised learning on graph-structured data that is based on an efficient variant of convolutional neural networks which operate directly on graphs. We motivate the choice of our convolutional architecture via a localized first-order approximation of spectral graph convolutions. Our model scales linearly in the number of graph edges and learns hidden layer representations that encode both local graph structure and features of nodes. In a number of experiments on citation networks and on a knowledge graph dataset we demonstrate that our approach outperforms related methods by a significant margin.},
+	urldate = {2021-12-16},
+	journal = {arXiv:1609.02907 [cs, stat]},
+	author = {Kipf, Thomas N. and Welling, Max},
+	month = {feb},
+	year = {2017},
+	note = {arXiv: 1609.02907},
+	keywords = {Computer Science - Machine Learning, Statistics - Machine Learning},
+}
+
+@article{dezoort_charged_2021,
+	title = {Charged particle tracking via edge-classifying interaction networks},
+	url = {http://arxiv.org/abs/2103.16701},
+	abstract = {Recent work has demonstrated that geometric deep learning methods such as graph neural networks (GNNs) are well suited to address a variety of reconstruction problems in high energy particle physics. In particular, particle tracking data is naturally represented as a graph by identifying silicon tracker hits as nodes and particle trajectories as edges; given a set of hypothesized edges, edge-classifying GNNs identify those corresponding to real particle trajectories. In this work, we adapt the physics-motivated interaction network (IN) GNN toward the problem of particle tracking in pileup conditions similar to those expected at the high-luminosity Large Hadron Collider. Assuming idealized hit filtering at various particle momenta thresholds, we demonstrate the IN's excellent edge-classification accuracy and tracking efficiency through a suite of measurements at each stage of GNN-based tracking: graph construction, edge classification, and track building. The proposed IN architecture is substantially smaller than previously studied GNN tracking architectures; this is particularly promising as a reduction in size is critical for enabling GNN-based tracking in constrained computing environments. Furthermore, the IN may be represented as either a set of explicit matrix operations or a message passing GNN. Efforts are underway to accelerate each representation via heterogeneous computing resources towards both high-level and low-latency triggering applications.},
+	urldate = {2021-12-16},
+	journal = {arXiv:2103.16701 [hep-ex]},
+	author = {DeZoort, Gage and Thais, Savannah and Duarte, Javier and Razavimaleki, Vesal and Atkinson, Markus and Ojalvo, Isobel and Neubauer, Mark and Elmer, Peter},
+	month = {nov},
+	year = {2021},
+	note = {arXiv: 2103.16701},
+	keywords = {Computer Science - Machine Learning, High Energy Physics - Experiment},
+}
+
+@article{singer_node_2019,
+	title = {Node {Embedding} over {Temporal} {Graphs}},
+	url = {http://arxiv.org/abs/1903.08889},
+	doi = {10.24963/ijcai.2019/640},
+	abstract = {In this work, we present a method for node embedding in temporal graphs. We propose an algorithm that learns the evolution of a temporal graph's nodes and edges over time and incorporates this dynamics in a temporal node embedding framework for different graph prediction tasks. We present a joint loss function that creates a temporal embedding of a node by learning to combine its historical temporal embeddings, such that it optimizes per given task (e.g., link prediction). The algorithm is initialized using static node embeddings, which are then aligned over the representations of a node at different time points, and eventually adapted for the given task in a joint optimization. We evaluate the effectiveness of our approach over a variety of temporal graphs for the two fundamental tasks of temporal link prediction and multi-label node classification, comparing to competitive baselines and algorithmic alternatives. Our algorithm shows performance improvements across many of the datasets and baselines and is found particularly effective for graphs that are less cohesive, with a lower clustering coefficient.},
+	urldate = {2021-12-16},
+	journal = {Proceedings of the Twenty-Eighth International Joint Conference on Artificial Intelligence},
+	author = {Singer, Uriel and Guy, Ido and Radinsky, Kira},
+	month = {aug},
+	year = {2019},
+	note = {arXiv: 1903.08889},
+	keywords = {Computer Science - Machine Learning, Computer Science - Social and Information Networks, Statistics - Machine Learning},
+	pages = {4605--4612},
+}
+
+@techreport{ershov_bringing_2021,
+	title = {Bringing {TrackMate} into the era of machine-learning and deep-learning},
+	copyright = {© 2021, Posted by Cold Spring Harbor Laboratory. This pre-print is available under a Creative Commons License (Attribution 4.0 International), CC BY 4.0, as described at http://creativecommons.org/licenses/by/4.0/},
+	url = {https://www.biorxiv.org/content/10.1101/2021.09.03.458852v2},
+	abstract = {TrackMate is an automated tracking software used to analyze bioimages and distributed as a Fiji plugin. Here we introduce a new version of TrackMate rewritten to improve performance and usability, and integrating several popular machine and deep learning algorithms to improve versatility. We illustrate how these new components can be used to efficiently track objects from brightfield and fluorescence microscopy images across a wide range of bio-imaging experiments.},
+	language = {en},
+	urldate = {2021-12-16},
+	author = {Ershov, Dmitry and Phan, Minh-Son and Pylvänäinen, Joanna W. and Rigaud, Stéphane U. and Blanc, Laure Le and Charles-Orszag, Arthur and Conway, James R. W. and Laine, Romain F. and Roy, Nathan H. and Bonazzi, Daria and Duménil, Guillaume and Jacquemet, Guillaume and Tinevez, Jean-Yves},
+	month = {sep},
+	year = {2021},
+	note = {Type: article},
+	pages = {2021.09.03.458852},
+}
+
+@article{cordonnier_extrapolating_2019,
+	title = {Extrapolating paths with graph neural networks},
+	url = {http://arxiv.org/abs/1903.07518},
+	abstract = {We consider the problem of path inference: given a path prefix, i.e., a partially observed sequence of nodes in a graph, we want to predict which nodes are in the missing suffix. In particular, we focus on natural paths occurring as a by-product of the interaction of an agent with a network---a driver on the transportation network, an information seeker in Wikipedia, or a client in an online shop. Our interest is sparked by the realization that, in contrast to shortest-path problems, natural paths are usually not optimal in any graph-theoretic sense, but might still follow predictable patterns. Our main contribution is a graph neural network called Gretel. Conditioned on a path prefix, this network can efficiently extrapolate path suffixes, evaluate path likelihood, and sample from the future path distribution. Our experiments with GPS traces on a road network and user-navigation paths in Wikipedia confirm that Gretel is able to adapt to graphs with very different properties, while also comparing favorably to previous solutions.},
+	urldate = {2021-12-16},
+	journal = {arXiv:1903.07518 [cs, stat]},
+	author = {Cordonnier, Jean-Baptiste and Loukas, Andreas},
+	month = {mar},
+	year = {2019},
+	note = {arXiv: 1903.07518},
+	keywords = {Computer Science - Machine Learning, Statistics - Machine Learning},
+}
+
+@techreport{stringer_cellpose_2020,
+	title = {Cellpose: a generalist algorithm for cellular segmentation},
+	copyright = {© 2020, Posted by Cold Spring Harbor Laboratory. This pre-print is available under a Creative Commons License (Attribution-NonCommercial 4.0 International), CC BY-NC 4.0, as described at http://creativecommons.org/licenses/by-nc/4.0/},
+	shorttitle = {Cellpose},
+	url = {https://www.biorxiv.org/content/10.1101/2020.02.02.931238v1},
+	abstract = {Many biological applications require the segmentation of cell bodies, membranes and nuclei from microscopy images. Deep learning has enabled great progress on this problem, but current methods are specialized for images that have large training datasets. Here we introduce a generalist, deep learning-based segmentation algorithm called Cellpose, which can very precisely segment a wide range of image types out-of-the-box and does not require model retraining or parameter adjustments. We trained Cellpose on a new dataset of highly-varied images of cells, containing over 70,000 segmented objects. To support community contributions to the training data, we developed software for manual labelling and for curation of the automated results, with optional direct upload to our data repository. Periodically retraining the model on the community-contributed data will ensure that Cellpose improves constantly.},
+	language = {en},
+	urldate = {2021-12-16},
+	author = {Stringer, Carsen and Michaelos, Michalis and Pachitariu, Marius},
+	month = {feb},
+	year = {2020},
+	note = {Type: article},
+	pages = {2020.02.02.931238},
+}
+
+@article{jin_recurrent_2020,
+	title = {Recurrent {Event} {Network}: {Autoregressive} {Structure} {Inference} over {Temporal} {Knowledge} {Graphs}},
+	shorttitle = {Recurrent {Event} {Network}},
+	url = {http://arxiv.org/abs/1904.05530},
+	abstract = {Knowledge graph reasoning is a critical task in natural language processing. The task becomes more challenging on temporal knowledge graphs, where each fact is associated with a timestamp. Most existing methods focus on reasoning at past timestamps and they are not able to predict facts happening in the future. This paper proposes Recurrent Event Network (RE-NET), a novel autoregressive architecture for predicting future interactions. The occurrence of a fact (event) is modeled as a probability distribution conditioned on temporal sequences of past knowledge graphs. Specifically, our RE-NET employs a recurrent event encoder to encode past facts and uses a neighborhood aggregator to model the connection of facts at the same timestamp. Future facts can then be inferred in a sequential manner based on the two modules. We evaluate our proposed method via link prediction at future times on five public datasets. Through extensive experiments, we demonstrate the strength of RENET, especially on multi-step inference over future timestamps, and achieve state-of-the-art performance on all five datasets. Code and data can be found at https://github.com/INK-USC/RE-Net.},
+	urldate = {2021-12-16},
+	journal = {arXiv:1904.05530 [cs, stat]},
+	author = {Jin, Woojeong and Qu, Meng and Jin, Xisen and Ren, Xiang},
+	month = {oct},
+	year = {2020},
+	note = {arXiv: 1904.05530},
+	keywords = {Computer Science - Artificial Intelligence, Computer Science - Computation and Language, Computer Science - Machine Learning, Statistics - Machine Learning},
+}
+
+@article{rossi_temporal_2020,
+	title = {Temporal {Graph} {Networks} for {Deep} {Learning} on {Dynamic} {Graphs}},
+	url = {http://arxiv.org/abs/2006.10637},
+	abstract = {Graph Neural Networks (GNNs) have recently become increasingly popular due to their ability to learn complex systems of relations or interactions arising in a broad spectrum of problems ranging from biology and particle physics to social networks and recommendation systems. Despite the plethora of different models for deep learning on graphs, few approaches have been proposed thus far for dealing with graphs that present some sort of dynamic nature (e.g. evolving features or connectivity over time). In this paper, we present Temporal Graph Networks (TGNs), a generic, efficient framework for deep learning on dynamic graphs represented as sequences of timed events. Thanks to a novel combination of memory modules and graph-based operators, TGNs are able to significantly outperform previous approaches being at the same time more computationally efficient. We furthermore show that several previous models for learning on dynamic graphs can be cast as specific instances of our framework. We perform a detailed ablation study of different components of our framework and devise the best configuration that achieves state-of-the-art performance on several transductive and inductive prediction tasks for dynamic graphs.},
+	urldate = {2021-12-16},
+	journal = {arXiv:2006.10637 [cs, stat]},
+	author = {Rossi, Emanuele and Chamberlain, Ben and Frasca, Fabrizio and Eynard, Davide and Monti, Federico and Bronstein, Michael},
+	month = {oct},
+	year = {2020},
+	note = {arXiv: 2006.10637},
+	keywords = {Computer Science - Machine Learning, Statistics - Machine Learning},
+}
+
+@incollection{paszke_pytorch_2019,
+	title = {{PyTorch}: {An} {Imperative} {Style}, {High}-{Performance} {Deep} {Learning} {Library}},
+	url = {http://papers.neurips.cc/paper/9015-pytorch-an-imperative-style-high-performance-deep-learning-library.pdf},
+	booktitle = {Advances in {Neural} {Information} {Processing} {Systems} 32},
+	publisher = {Curran Associates, Inc.},
+	author = {Paszke, Adam and Gross, Sam and Massa, Francisco and Lerer, Adam and Bradbury, James and Chanan, Gregory and Killeen, Trevor and Lin, Zeming and Gimelshein, Natalia and Antiga, Luca and Desmaison, Alban and Kopf, Andreas and Yang, Edward and DeVito, Zachary and Raison, Martin and Tejani, Alykhan and Chilamkurthy, Sasank and Steiner, Benoit and Fang, Lu and Bai, Junjie and Chintala, Soumith},
+	editor = {Wallach, H. and Larochelle, H. and Beygelzimer, A. and Alché-Buc, F. d' and Fox, E. and Garnett, R.},
+	year = {2019},
+	pages = {8024--8035},
+}
+
+@article{fey_fast_2019,
+	title = {Fast {Graph} {Representation} {Learning} with {PyTorch} {Geometric}},
+	url = {http://arxiv.org/abs/1903.02428},
+	abstract = {We introduce PyTorch Geometric, a library for deep learning on irregularly structured input data such as graphs, point clouds and manifolds, built upon PyTorch. In addition to general graph data structures and processing methods, it contains a variety of recently published methods from the domains of relational learning and 3D data processing. PyTorch Geometric achieves high data throughput by leveraging sparse GPU acceleration, by providing dedicated CUDA kernels and by introducing efficient mini-batch handling for input examples of different size. In this work, we present the library in detail and perform a comprehensive comparative study of the implemented methods in homogeneous evaluation scenarios.},
+	urldate = {2021-12-16},
+	journal = {arXiv:1903.02428 [cs, stat]},
+	author = {Fey, Matthias and Lenssen, Jan Eric},
+	month = {apr},
+	year = {2019},
+	note = {arXiv: 1903.02428},
+	keywords = {Computer Science - Machine Learning, Statistics - Machine Learning},
+}
+
+@article{li_deepergcn_2020,
+	title = {{DeeperGCN}: {All} {You} {Need} to {Train} {Deeper} {GCNs}},
+	shorttitle = {{DeeperGCN}},
+	url = {http://arxiv.org/abs/2006.07739},
+	abstract = {Graph Convolutional Networks (GCNs) have been drawing significant attention with the power of representation learning on graphs. Unlike Convolutional Neural Networks (CNNs), which are able to take advantage of stacking very deep layers, GCNs suffer from vanishing gradient, over-smoothing and over-fitting issues when going deeper. These challenges limit the representation power of GCNs on large-scale graphs. This paper proposes DeeperGCN that is capable of successfully and reliably training very deep GCNs. We define differentiable generalized aggregation functions to unify different message aggregation operations (e.g. mean, max). We also propose a novel normalization layer namely MsgNorm and a pre-activation version of residual connections for GCNs. Extensive experiments on Open Graph Benchmark (OGB) show DeeperGCN significantly boosts performance over the state-of-the-art on the large scale graph learning tasks of node property prediction and graph property prediction. Please visit https://www.deepgcns.org for more information.},
+	urldate = {2021-12-16},
+	journal = {arXiv:2006.07739 [cs, stat]},
+	author = {Li, Guohao and Xiong, Chenxin and Thabet, Ali and Ghanem, Bernard},
+	month = {jun},
+	year = {2020},
+	note = {arXiv: 2006.07739},
+	keywords = {Computer Science - Computer Vision and Pattern Recognition, Computer Science - Machine Learning, Statistics - Machine Learning},
+}
+
+@article{dietler_convolutional_2020,
+	title = {A convolutional neural network segments yeast microscopy images with high accuracy},
+	volume = {11},
+	copyright = {2020 The Author(s)},
+	issn = {2041-1723},
+	url = {https://www.nature.com/articles/s41467-020-19557-4},
+	doi = {10.1038/s41467-020-19557-4},
+	abstract = {The identification of cell borders (‘segmentation’) in microscopy images constitutes a bottleneck for large-scale experiments. For the model organism Saccharomyces cerevisiae, current segmentation methods face challenges when cells bud, crowd, or exhibit irregular features. We present a convolutional neural network (CNN) named YeaZ, the underlying training set of high-quality segmented yeast images ({\textgreater}10 000 cells) including mutants, stressed cells, and time courses, as well as a graphical user interface and a web application (www.quantsysbio.com/data-and-software) to efficiently employ, test, and expand the system. A key feature is a cell-cell boundary test which avoids the need for fluorescent markers. Our CNN is highly accurate, including for buds, and outperforms existing methods on benchmark images, indicating it transfers well to other conditions. To demonstrate how efficient large-scale image processing uncovers new biology, we analyze the geometries of ≈2200 wild-type and cyclin mutant cells and find that morphogenesis control occurs unexpectedly early and gradually.},
+	language = {en},
+	number = {1},
+	urldate = {2021-12-16},
+	journal = {Nature Communications},
+	author = {Dietler, Nicola and Minder, Matthias and Gligorovski, Vojislav and Economou, Augoustina Maria and Joly, Denis Alain Henri Lucien and Sadeghi, Ahmad and Chan, Chun Hei Michael and Koziński, Mateusz and Weigert, Martin and Bitbol, Anne-Florence and Rahi, Sahand Jamal},
+	month = {nov},
+	year = {2020},
+	keywords = {Bioinformatics, Image processing, Software},
+	pages = {5723},
+}
+
+@article{bipartite,
+
+  author={Chowdhury, Ananda S. and Chatterjee, Rohit and Ghosh, Mayukh and Ray, Nilanjan},
+
+  booktitle={2010 20th International Conference on Pattern Recognition}, 
+
+  title={Cell Tracking in Video Microscopy Using Bipartite Graph Matching}, 
+
+  year={2010},
+
+  volume={},
+
+  number={},
+
+  pages={2456-2459},
+
+  doi={10.1109/ICPR.2010.601}}
+
+ @article{viterbi, title={Global linking of cell tracks using the Viterbi algorithm}, volume={34}, DOI={10.1109/tmi.2014.2370951}, number={4}, journal={IEEE Transactions on Medical Imaging}, author={Magnusson, Klas E. and Jalden, Joakim and Gilbert, Penney M. and Blau, Helen M.}, year={2015}, pages={911–929}} 
+
+@article{viterbi2,  author={Hernandez, David E. and Chen, Steven W. and Hunter, Elizabeth E. and Steager, Edward B. and Kumar, Vijay},  booktitle={2018 International Conference on Manipulation, Automation and Robotics at Small Scales (MARSS)},   title={Cell Tracking with Deep Learning and the Viterbi Algorithm},   year={2018},  volume={},  number={},  pages={1-6},  doi={10.1109/MARSS.2018.8481231}}
+
+@article{he,
+author = {He, Tao and Mao, Hua and Guo, Jixiang and yi, Zhang},
+year = {2016},
+month = {11},
+pages = {},
+title = {Cell Tracking Using Deep Neural Networks with Multi-task Learning},
+volume = {60},
+journal = {Image and Vision Computing},
+doi = {10.1016/j.imavis.2016.11.010}
+}
+
+@article{delta,
+    doi = {10.1371/journal.pcbi.1007673},
+    author = {Lugagne, Jean-Baptiste AND Lin, Haonan AND Dunlop, Mary J.},
+    journal = {PLOS Computational Biology},
+    publisher = {Public Library of Science},
+    title = {DeLTA: Automated cell segmentation, tracking, and lineage reconstruction using deep learning},
+    year = {2020},
+    month = {04},
+    volume = {16},
+    url = {https://doi.org/10.1371/journal.pcbi.1007673},
+    pages = {1-18},
+    number = {4},
+}
+
+@article{payer,
+title = {Segmenting and tracking cell instances with cosine embeddings and recurrent hourglass networks},
+journal = {Medical Image Analysis},
+volume = {57},
+pages = {106-119},
+year = {2019},
+issn = {1361-8415},
+doi = {https://doi.org/10.1016/j.media.2019.06.015},
+url = {https://www.sciencedirect.com/science/article/pii/S136184151930057X},
+author = {Christian Payer and Darko Å tern and Marlies Feiner and Horst Bischof and Martin Urschler},
+keywords = {Cell, Tracking, Segmentation, Instances, Recurrent, Video, Embeddings},
+}
+
+
+@article{hayashida,
+author = {Hayashida, Junya and Bise, Ryoma},
+title = {Cell Tracking with Deep Learning for Cell Detection and Motion Estimation in Low-Frame-Rate},
+isbn = {978-3-030-32238-0},
+publisher = {Springer-Verlag},
+address = {Berlin, Heidelberg},
+url = {https://doi.org/10.1007/978-3-030-32239-7_44},
+doi = {10.1007/978-3-030-32239-7_44},
+abstract = {Cell behavior analysis in high-throughput biological experiments is important for research and discovery in biology and medicine. To perform the high-throughput experiments, it requires to capture images in low frame rate in order to record images on multi-points. In such a low frame rate image sequence, movements of cells between successive frames are often larger than distances to nearby cells, and thus current methods based on proximity do not work properly. In this study, we propose a cell tracking method that enables to track cells in low frame rate by simultaneously estimating all of the cell motions in successive frames. In the experiments under dense conditions in low frame rate, our method outperformed the other methods.},
+booktitle = {Medical Image Computing and Computer Assisted Intervention – MICCAI 2019},
+pages = {397–405},
+numpages = {9},
+keywords = {Cell tracking, Microscopy image analysis}
+}
+
+@article {moen,
+	author = {Moen, Erick and Borba, Enrico and Miller, Geneva and Schwartz, Morgan and Bannon, Dylan and Koe, Nora and Camplisson, Isabella and Kyme, Daniel and Pavelchek, Cole and Price, Tyler and Kudo, Takamasa and Pao, Edward and Graf, William and Van Valen, David},
+	title = {Accurate cell tracking and lineage construction in live-cell imaging experiments with deep learning},
+	elocation-id = {803205},
+	year = {2019},
+	doi = {10.1101/803205},
+	publisher = {Cold Spring Harbor Laboratory},
+	abstract = {Live-cell imaging experiments have opened an exciting window into the behavior of living systems. While these experiments can produce rich data, the computational analysis of these datasets is challenging. Single-cell analysis requires that cells be accurately identified in each image and subsequently tracked over time. Increasingly, deep learning is being used to interpret microscopy image with single cell resolution. In this work, we apply deep learning to the problem of tracking single cells in live-cell imaging data. Using crowdsourcing and a human-in-the-loop approach to data annotation, we constructed a dataset of over 11,000 trajectories of cell nuclei that includes lineage information. Using this dataset, we successfully trained a deep learning model to perform cell tracking within a linear programming framework. Benchmarking tests demonstrate that our method achieves state-of-the-art performance on the task of cell tracking with respect to multiple accuracy metrics. Further, we show that our deep learning-based method generalizes to perform cell tracking for both fluorescent and brightfield images of the cell cytoplasm, despite having never been trained on those data types. This enables analysis of live-cell imaging data collected across imaging modalities. A persistent cloud deployment of our cell tracker is available at http://www.deepcell.org.},
+	URL = {https://www.biorxiv.org/content/early/2019/10/14/803205},
+	eprint = {https://www.biorxiv.org/content/early/2019/10/14/803205.full.pdf},
+	journal = {bioRxiv}
+}
+
+@article{yeastnet,
+AUTHOR = {Salem, Danny and Li, Yifeng and Xi, Pengcheng and Phenix, Hilary and Cuperlovic-Culf, Miroslava and Kærn, Mads},
+TITLE = {YeastNet: Deep-Learning-Enabled Accurate Segmentation of Budding Yeast Cells in Bright-Field Microscopy},
+JOURNAL = {Applied Sciences},
+VOLUME = {11},
+YEAR = {2021},
+NUMBER = {6},
+ARTICLE-NUMBER = {2692},
+URL = {https://www.mdpi.com/2076-3417/11/6/2692},
+ISSN = {2076-3417},
+ABSTRACT = {Accurate and efficient segmentation of live-cell images is critical in maximizing data extraction and knowledge generation from high-throughput biology experiments. Despite recent development of deep-learning tools for biomedical imaging applications, great demand for automated segmentation tools for high-resolution live-cell microscopy images remains in order to accelerate the analysis. YeastNet dramatically improves the performance of the non-trainable classic algorithm, and performs considerably better than the current state-of-the-art yeast-cell segmentation tools. We have designed and trained a U-Net convolutional network (named YeastNet) to conduct semantic segmentation on bright-field microscopy images and generate segmentation masks for cell labeling and tracking. YeastNet enables accurate automatic segmentation and tracking of yeast cells in biomedical applications. YeastNet is freely provided with model weights as a Python package on GitHub.},
+DOI = {10.3390/app11062692}
+}
+
+@article{kruitbosch,
+    author = {Kruitbosch, Herbert T and Mzayek, Yasmin and Omlor, Sara and Guerra, Paolo and Milias-Argeitis, Andreas},
+    title = "{A convolutional neural network for segmentation of yeast cells without manual training annotations}",
+    journal = {Bioinformatics},
+    volume = {38},
+    number = {5},
+    pages = {1427-1433},
+    year = {2021},
+    month = {12},
+    abstract = "{Single-cell time-lapse microscopy is a ubiquitous tool for studying the dynamics of complex cellular processes. While imaging can be automated to generate very large volumes of data, the processing of the resulting movies to extract high-quality single-cell information remains a challenging task. The development of software tools that automatically identify and track cells is essential for realizing the full potential of time-lapse microscopy data. Convolutional neural networks (CNNs) are ideally suited for such applications, but require great amounts of manually annotated data for training, a time-consuming and tedious process.We developed a new approach to CNN training for yeast cell segmentation based on synthetic data and present (i) a software tool for the generation of synthetic images mimicking brightfield images of budding yeast cells and (ii) a convolutional neural network (Mask R-CNN) for yeast segmentation that was trained on a fully synthetic dataset. The Mask R-CNN performed excellently on segmenting actual microscopy images of budding yeast cells, and a density-based spatial clustering algorithm (DBSCAN) was able to track the detected cells across the frames of microscopy movies. Our synthetic data creation tool completely bypassed the laborious generation of manually annotated training datasets, and can be easily adjusted to produce images with many different features. The incorporation of synthetic data creation into the development pipeline of CNN-based tools for budding yeast microscopy is a critical step toward the generation of more powerful, widely applicable and user-friendly image processing tools for this microorganism.The synthetic data generation code can be found at https://github.com/prhbrt/synthetic-yeast-cells. The Mask R-CNN as well as the tuning and benchmarking scripts can be found at https://github.com/ymzayek/yeastcells-detection-maskrcnn. We also provide Google Colab scripts that reproduce all the results of this work.Supplementary data are available at Bioinformatics online.}",
+    issn = {1367-4803},
+    doi = {10.1093/bioinformatics/btab835},
+    url = {https://doi.org/10.1093/bioinformatics/btab835},
+    eprint = {https://academic.oup.com/bioinformatics/article-pdf/38/5/1427/42419704/btab835.pdf},
+}
+
+@article{GNN-tracking,
+  doi = {10.48550/ARXIV.2202.04731},
+  
+  url = {https://arxiv.org/abs/2202.04731},
+  
+  author = {Ben-Haim, Tal and Riklin-Raviv, Tammy},
+  
+  keywords = {Computer Vision and Pattern Recognition (cs.CV), FOS: Computer and information sciences, FOS: Computer and information sciences},
+  
+  title = {Graph Neural Network for Cell Tracking in Microscopy Videos},
+  
+  publisher = {arXiv},
+  
+  year = {2022},
+  
+  copyright = {arXiv.org perpetual, non-exclusive license}
+}
+
+@article{zhou_graph_2021,
+	title = {Graph {Neural} {Networks}: {A} {Review} of {Methods} and {Applications}},
+	shorttitle = {Graph {Neural} {Networks}},
+	url = {http://arxiv.org/abs/1812.08434},
+	abstract = {Lots of learning tasks require dealing with graph data which contains rich relation information among elements. Modeling physics systems, learning molecular fingerprints, predicting protein interface, and classifying diseases demand a model to learn from graph inputs. In other domains such as learning from non-structural data like texts and images, reasoning on extracted structures (like the dependency trees of sentences and the scene graphs of images) is an important research topic which also needs graph reasoning models. Graph neural networks (GNNs) are neural models that capture the dependence of graphs via message passing between the nodes of graphs. In recent years, variants of GNNs such as graph convolutional network (GCN), graph attention network (GAT), graph recurrent network (GRN) have demonstrated ground-breaking performances on many deep learning tasks. In this survey, we propose a general design pipeline for GNN models and discuss the variants of each component, systematically categorize the applications, and propose four open problems for future research.},
+	urldate = {2021-12-16},
+	journal = {arXiv:1812.08434 [cs, stat]},
+	author = {Zhou, Jie and Cui, Ganqu and Hu, Shengding and Zhang, Zhengyan and Yang, Cheng and Liu, Zhiyuan and Wang, Lifeng and Li, Changcheng and Sun, Maosong},
+	month = {oct},
+	year = {2021},
+	note = {arXiv: 1812.08434},
+	keywords = {Computer Science - Artificial Intelligence, Computer Science - Machine Learning, Statistics - Machine Learning},
+}
+
+
+@ARTICLE{2020SciPy-NMeth,
+	author  = {Virtanen, Pauli and Gommers, Ralf and Oliphant, Travis E. and
+	Haberland, Matt and Reddy, Tyler and Cournapeau, David and
+	Burovski, Evgeni and Peterson, Pearu and Weckesser, Warren and
+	Bright, Jonathan and {van der Walt}, St{\'e}fan J. and
+	Brett, Matthew and Wilson, Joshua and Millman, K. Jarrod and
+	Mayorov, Nikolay and Nelson, Andrew R. J. and Jones, Eric and
+	Kern, Robert and Larson, Eric and Carey, C J and
+	Polat, {\.I}lhan and Feng, Yu and Moore, Eric W. and
+	{VanderPlas}, Jake and Laxalde, Denis and Perktold, Josef and
+	Cimrman, Robert and Henriksen, Ian and Quintero, E. A. and
+	Harris, Charles R. and Archibald, Anne M. and
+	Ribeiro, Ant{\^o}nio H. and Pedregosa, Fabian and
+	{van Mulbregt}, Paul and {SciPy 1.0 Contributors}},
+	title   = {{{SciPy} 1.0: Fundamental Algorithms for Scientific
+	Computing in Python}},
+	journal = {Nature Methods},
+	year    = {2020},
+	volume  = {17},
+	pages   = {261--272},
+	adsurl  = {https://rdcu.be/b08Wh},
+	doi     = {10.1038/s41592-019-0686-2},
+}
+
+
+@article{ioffe_batch_2015,
+	title = {Batch {Normalization}: {Accelerating} {Deep} {Network} {Training} by {Reducing} {Internal} {Covariate} {Shift}},
+	shorttitle = {Batch {Normalization}},
+	url = {http://arxiv.org/abs/1502.03167},
+	abstract = {Training Deep Neural Networks is complicated by the fact that the distribution of each layer's inputs changes during training, as the parameters of the previous layers change. This slows down the training by requiring lower learning rates and careful parameter initialization, and makes it notoriously hard to train models with saturating nonlinearities. We refer to this phenomenon as internal covariate shift, and address the problem by normalizing layer inputs. Our method draws its strength from making normalization a part of the model architecture and performing the normalization for each training mini-batch. Batch Normalization allows us to use much higher learning rates and be less careful about initialization. It also acts as a regularizer, in some cases eliminating the need for Dropout. Applied to a state-of-the-art image classification model, Batch Normalization achieves the same accuracy with 14 times fewer training steps, and beats the original model by a significant margin. Using an ensemble of batch-normalized networks, we improve upon the best published result on ImageNet classification: reaching 4.9\% top-5 validation error (and 4.8\% test error), exceeding the accuracy of human raters.},
+	urldate = {2021-12-18},
+	journal = {arXiv:1502.03167 [cs]},
+	author = {Ioffe, Sergey and Szegedy, Christian},
+	month = mar,
+	year = {2015},
+	note = {arXiv: 1502.03167},
+	keywords = {Computer Science - Machine Learning},
+}
+
+
+
+@article{brody_how_2021,
+	title = {How {Attentive} are {Graph} {Attention} {Networks}?},
+	url = {http://arxiv.org/abs/2105.14491},
+	abstract = {Graph Attention Networks (GATs) are one of the most popular GNN architectures and are considered as the state-of-the-art architecture for representation learning with graphs. In GAT, every node attends to its neighbors given its own representation as the query. However, in this paper we show that GAT computes a very limited kind of attention: the ranking of the attention scores is unconditioned on the query node. We formally define this restricted kind of attention as static attention and distinguish it from a strictly more expressive dynamic attention. Because GATs use a static attention mechanism, there are simple graph problems that GAT cannot express: in a controlled problem, we show that static attention hinders GAT from even fitting the training data. To remove this limitation, we introduce a simple fix by modifying the order of operations and propose GATv2: a dynamic graph attention variant that is strictly more expressive than GAT. We perform an extensive evaluation and show that GATv2 outperforms GAT across 11 OGB and other benchmarks while we match their parametric costs. Our code is available at https://github.com/tech-srl/how\_attentive\_are\_gats , and GATv2 is available as part of the PyTorch Geometric library.},
+	urldate = {2021-12-18},
+	journal = {arXiv:2105.14491 [cs]},
+	author = {Brody, Shaked and Alon, Uri and Yahav, Eran},
+	month = oct,
+	year = {2021},
+	note = {arXiv: 2105.14491},
+	keywords = {Computer Science - Machine Learning},
+}
+
+@article{velickovic_graph_2018,
+	title = {Graph {Attention} {Networks}},
+	url = {http://arxiv.org/abs/1710.10903},
+	abstract = {We present graph attention networks (GATs), novel neural network architectures that operate on graph-structured data, leveraging masked self-attentional layers to address the shortcomings of prior methods based on graph convolutions or their approximations. By stacking layers in which nodes are able to attend over their neighborhoods' features, we enable (implicitly) specifying different weights to different nodes in a neighborhood, without requiring any kind of costly matrix operation (such as inversion) or depending on knowing the graph structure upfront. In this way, we address several key challenges of spectral-based graph neural networks simultaneously, and make our model readily applicable to inductive as well as transductive problems. Our GAT models have achieved or matched state-of-the-art results across four established transductive and inductive graph benchmarks: the Cora, Citeseer and Pubmed citation network datasets, as well as a protein-protein interaction dataset (wherein test graphs remain unseen during training).},
+	urldate = {2021-12-18},
+	journal = {arXiv:1710.10903 [cs, stat]},
+	author = {Veličković, Petar and Cucurull, Guillem and Casanova, Arantxa and Romero, Adriana and Liò, Pietro and Bengio, Yoshua},
+	month = feb,
+	year = {2018},
+	note = {arXiv: 1710.10903},
+	keywords = {Computer Science - Artificial Intelligence, Computer Science - Machine Learning, Computer Science - Social and Information Networks, Statistics - Machine Learning},
+}
+
+@article{Cuny2022,
+author={Cuny, Andreas P.
+and Ponti, Aaron
+and K{\"u}ndig, Tomas
+and Rudolf, Fabian
+and Stelling, J{\"o}rg},
+title={Cell region fingerprints enable highly precise single-cell tracking and lineage reconstruction},
+journal={Nature Methods},
+year={2022},
+month={Oct},
+day={01},
+volume={19},
+number={10},
+pages={1276-1285},
+abstract={Experimental studies of cell growth, inheritance and their associated processes by microscopy require accurate single-cell observations of sufficient duration to reconstruct the genealogy. However, cell tracking---assigning identical cells on consecutive images to a track---is often challenging, resulting in laborious manual verification. Here, we propose fingerprints to identify problematic assignments rapidly. A fingerprint distance compares the structural information contained in the low frequencies of a Fourier transform to measure the similarity between cells in two consecutive images. We show that fingerprints are broadly applicable across cell types and image modalities, provided the image has sufficient structural information. Our tracker (TracX) uses fingerprints to reject unlikely assignments, thereby increasing tracking performance on published and newly generated long-term data sets. For Saccharomyces cerevisiae, we propose a comprehensive model for cell size control at the single-cell and population level centered on the Whi5 regulator, demonstrating how precise tracking can help uncover previously undescribed single-cell biology.},
+issn={1548-7105},
+doi={10.1038/s41592-022-01603-2},
+url={https://doi.org/10.1038/s41592-022-01603-2}
+}
+

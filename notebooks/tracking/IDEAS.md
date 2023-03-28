@@ -1,0 +1,2 @@
+- the validation loss jumps around a lot, might want to do validation more often, even mid-epoch. not too sure of how to do this
+- use the 5 CV folds to train 5 models, then do ensemble voting or average the output scores

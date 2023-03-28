@@ -1,0 +1,303 @@
+<pre>(bread) <font color="#2AA1B3">(main)</font><font color="#5E5C64"> tracking</font> $ python train.py
+-- arguments --
+{&apos;conv_hidden_channels&apos;: 120,
+ &apos;conv_num_layers&apos;: 5,
+ &apos;cv&apos;: 5,
+ &apos;dataset&apos;: &apos;colony_1234__dt_1234__t_all&apos;,
+ &apos;dropout_rate&apos;: 1e-07,
+ &apos;encoder_hidden_channels&apos;: 120,
+ &apos;encoder_num_layers&apos;: 4,
+ &apos;filter_file_mb&apos;: 10,
+ &apos;gamma&apos;: 0.5,
+ &apos;lr&apos;: 0.001,
+ &apos;max_epochs&apos;: 20,
+ &apos;step_size&apos;: 512,
+ &apos;weight_decay&apos;: 0.01}
+device : cuda
+-- training dataset --
+AssignmentDataset(2655)
+-- starting training --
+  epoch    train_loss    valid_acc    valid_loss    cp       dur                                                                                              
+-------  ------------  -----------  ------------  ----  --------
+      1        <font color="#2AA1B3">0.4649</font>       <font color="#26A269">0.9940</font>        <font color="#A347BA">0.9218</font>     +  121.2040
+      2        <font color="#2AA1B3">0.1104</font>       <font color="#26A269">0.9982</font>        <font color="#A347BA">0.1722</font>     +  112.2152                                                                                              
+ 29%|████████████████████████████▉                                                                      | 777/2655 [00:37&lt;01:05, 28.86it/s, train_loss=0.0629](bread) <font color="#2AA1B3">(main)</font><font color="#5E5C64"> tracking</font> $ python train.py --max-epochs=20 --gamma=0.9 --step-size=512
+-- arguments --
+{&apos;conv_hidden_channels&apos;: 120,
+ &apos;conv_num_layers&apos;: 5,
+ &apos;cv&apos;: 5,
+ &apos;dataset&apos;: &apos;colony_1234__dt_1234__t_all&apos;,
+ &apos;dropout_rate&apos;: 1e-07,
+ &apos;encoder_hidden_channels&apos;: 120,
+ &apos;encoder_num_layers&apos;: 4,
+ &apos;filter_file_mb&apos;: 10,
+ &apos;gamma&apos;: 0.9,
+ &apos;lr&apos;: 0.001,
+ &apos;max_epochs&apos;: 20,
+ &apos;step_size&apos;: 512,
+ &apos;weight_decay&apos;: 0.01}
+device : cuda
+-- training dataset --
+AssignmentDataset(2655)
+-- starting training --
+  epoch    train_loss    valid_acc    valid_loss    cp       dur                                                                                              
+-------  ------------  -----------  ------------  ----  --------
+      1        <font color="#2AA1B3">0.5654</font>       <font color="#26A269">0.9848</font>        <font color="#A347BA">3.6718</font>     +  109.8320
+      2        <font color="#2AA1B3">0.3108</font>       0.9743        <font color="#A347BA">0.2094</font>     +  113.0445                                                                                              
+      3        <font color="#2AA1B3">0.0816</font>       <font color="#26A269">0.9864</font>        4.1771        111.5635                                                                                              
+      4        <font color="#2AA1B3">0.0429</font>       <font color="#26A269">0.9957</font>        0.4007        109.3368                                                                                              
+      5        <font color="#2AA1B3">0.0382</font>       <font color="#26A269">0.9984</font>        <font color="#A347BA">0.0982</font>     +  110.1248                                                                                              
+      6        <font color="#2AA1B3">0.0357</font>       0.9840        7.3597        110.3407                                                                                              
+      7        <font color="#2AA1B3">0.0314</font>       0.9941        0.6199        109.0702                                                                                              
+      8        0.0317       0.9835        4.5939        110.1540                                                                                              
+      9        <font color="#2AA1B3">0.0310</font>       0.9879        1.7132        112.3517                                                                                              
+     10        <font color="#2AA1B3">0.0307</font>       0.9898        0.9197        111.5002                                                                                              
+     11        <font color="#2AA1B3">0.0301</font>       0.9891        0.1403        109.8459                                                                                              
+     12        <font color="#2AA1B3">0.0298</font>       0.9798        3.5895        111.3914                                                                                              
+     13        <font color="#2AA1B3">0.0297</font>       0.9900        0.8482        111.7202                                                                                              
+     14        <font color="#2AA1B3">0.0295</font>       0.9809        2.8204        112.8727                                                                                              
+     15        <font color="#2AA1B3">0.0294</font>       0.9847        3.1060        111.3189                                                                                              
+     16        <font color="#2AA1B3">0.0294</font>       0.9867        1.1866        109.6885                                                                                              
+     17        <font color="#2AA1B3">0.0294</font>       0.9925        0.4284        109.4823                                                                                              
+ 43%|██████████████████████████████████████████▌                                                        | 1140/2655 [00:52&lt;00:55, 27.20it/s, train_loss=0.021](bread) <font color="#2AA1B3">(main)</font><font color="#5E5C64"> tracking</font> $ python train.py --max-epochs=20 --gamma=0.93 --step-size=512                                                                        
+-- arguments --
+{&apos;conv_hidden_channels&apos;: 120,
+ &apos;conv_num_layers&apos;: 5,
+ &apos;cv&apos;: 5,
+ &apos;dataset&apos;: &apos;colony_1234__dt_1234__t_all&apos;,
+ &apos;dropout_rate&apos;: 1e-07,
+ &apos;encoder_hidden_channels&apos;: 120,
+ &apos;encoder_num_layers&apos;: 4,
+ &apos;filter_file_mb&apos;: 10,
+ &apos;gamma&apos;: 0.93,
+ &apos;lr&apos;: 0.001,
+ &apos;max_epochs&apos;: 20,
+ &apos;step_size&apos;: 512,
+ &apos;weight_decay&apos;: 0.01}
+device : cuda
+-- training dataset --
+AssignmentDataset(2655)
+-- starting training --
+  epoch    train_loss    valid_acc    valid_loss    cp       dur                                                                                              
+-------  ------------  -----------  ------------  ----  --------
+      1        <font color="#2AA1B3">0.5565</font>       <font color="#26A269">0.9195</font>        <font color="#A347BA">0.9932</font>     +  114.3361
+      2        <font color="#2AA1B3">0.2292</font>       <font color="#26A269">0.9942</font>        <font color="#A347BA">0.1826</font>     +  112.7645                                                                                              
+      3        <font color="#2AA1B3">0.0922</font>       0.9862        3.5348        111.1608                                                                                              
+      4        <font color="#2AA1B3">0.0802</font>       0.9939        0.5719        113.3789                                                                                              
+      5        <font color="#2AA1B3">0.0548</font>       <font color="#26A269">0.9976</font>        0.2092        112.4676                                                                                              
+      6        <font color="#2AA1B3">0.0457</font>       0.9863        3.6560        115.4509                                                                                              
+      7        <font color="#2AA1B3">0.0369</font>       0.9943        0.6530        110.3720                                                                                              
+      8        <font color="#2AA1B3">0.0359</font>       0.9853        4.6216        109.2059                                                                                              
+      9        <font color="#2AA1B3">0.0340</font>       0.9916        1.2196        109.0880                                                                                              
+     10        0.0346       0.9930        0.8008        109.3789                                                                                              
+     11        <font color="#2AA1B3">0.0338</font>       0.9944        <font color="#A347BA">0.1009</font>     +  109.2028                                                                                              
+     12        <font color="#2AA1B3">0.0311</font>       0.9838        4.0118        109.3717                                                                                              
+     13        <font color="#2AA1B3">0.0302</font>       0.9949        0.5362        109.1182                                                                                              
+     14        0.0305       0.9856        3.4793        109.2174                                                                                              
+ 26%|█████████████████████████▌                                                                         | 686/2655 [00:32&lt;01:40, 19.52it/s, train_loss=0.0234](bread) <font color="#2AA1B3">(main)</font><font color="#5E5C64"> tracking</font> $ python train.py --max-epochs=20 --gamma=0.95 --step-size=512                                                                       
+-- arguments --
+{&apos;conv_hidden_channels&apos;: 120,
+ &apos;conv_num_layers&apos;: 5,
+ &apos;cv&apos;: 5,
+ &apos;dataset&apos;: &apos;colony_1234__dt_1234__t_all&apos;,
+ &apos;dropout_rate&apos;: 1e-07,
+ &apos;encoder_hidden_channels&apos;: 120,
+ &apos;encoder_num_layers&apos;: 4,
+ &apos;filter_file_mb&apos;: 10,
+ &apos;gamma&apos;: 0.95,
+ &apos;lr&apos;: 0.001,
+ &apos;max_epochs&apos;: 20,
+ &apos;step_size&apos;: 512,
+ &apos;weight_decay&apos;: 0.01}
+device : cuda
+-- training dataset --
+AssignmentDataset(2655)
+-- starting training --
+  epoch    train_loss    valid_acc    valid_loss    cp       dur                                                                                              
+-------  ------------  -----------  ------------  ----  --------
+      1        <font color="#2AA1B3">0.6099</font>       <font color="#26A269">0.9712</font>        <font color="#A347BA">1.6977</font>     +  109.7149
+      2        <font color="#2AA1B3">0.1795</font>       <font color="#26A269">0.9962</font>        <font color="#A347BA">0.1762</font>     +  108.6941                                                                                              
+      3        <font color="#2AA1B3">0.0979</font>       0.9854        4.8784        108.8617                                                                                              
+      4        <font color="#2AA1B3">0.0812</font>       0.9962        0.2937        108.7577                                                                                              
+      5        <font color="#2AA1B3">0.0675</font>       0.9928        0.7607        108.9175                                                                                              
+      6        <font color="#2AA1B3">0.0509</font>       0.9896        1.9315        108.3826                                                                                              
+      7        <font color="#2AA1B3">0.0450</font>       0.9954        0.4115        108.7988                                                                                              
+      8        <font color="#2AA1B3">0.0426</font>       0.9867        3.6258        108.9128                                                                                              
+      9        <font color="#2AA1B3">0.0388</font>       0.9948        0.6123        109.7905                                                                                              
+     10        0.0400       0.9946        0.6097        110.1336                                                                                              
+     11        <font color="#2AA1B3">0.0379</font>       0.9921        <font color="#A347BA">0.1373</font>     +  110.3038                                                                                              
+     12        <font color="#2AA1B3">0.0348</font>       0.9859        3.1633        109.1386                                                                                              
+     13        <font color="#2AA1B3">0.0343</font>       0.9952        0.4651        108.8299                                                                                              
+     14        <font color="#2AA1B3">0.0335</font>       0.9873        2.3277        108.9873                                                                                              
+     15        <font color="#2AA1B3">0.0332</font>       0.9869        2.0402        108.9128                                                                                              
+     16        <font color="#2AA1B3">0.0325</font>       0.9904        0.7504        108.5957                                                                                              
+     17        <font color="#2AA1B3">0.0319</font>       0.9948        0.2131        109.8815                                                                                              
+     18        <font color="#2AA1B3">0.0313</font>       0.9841        1.9590        108.9593                                                                                              
+     19        <font color="#2AA1B3">0.0311</font>       0.9810        3.3360        108.7627                                                                                              
+     20        <font color="#2AA1B3">0.0308</font>       0.9961        <font color="#A347BA">0.1134</font>     +  108.9716                                                                                              
+(bread) <font color="#2AA1B3">(main)</font><font color="#5E5C64"> tracking</font> $ python train.py --max-epochs=40 --gamma=0.96 --step-size=512
+-- arguments --
+{&apos;conv_hidden_channels&apos;: 120,
+ &apos;conv_num_layers&apos;: 5,
+ &apos;cv&apos;: 5,
+ &apos;dataset&apos;: &apos;colony_1234__dt_1234__t_all&apos;,
+ &apos;dropout_rate&apos;: 1e-07,
+ &apos;encoder_hidden_channels&apos;: 120,
+ &apos;encoder_num_layers&apos;: 4,
+ &apos;filter_file_mb&apos;: 10,
+ &apos;gamma&apos;: 0.96,
+ &apos;lr&apos;: 0.001,
+ &apos;max_epochs&apos;: 40,
+ &apos;step_size&apos;: 512,
+ &apos;weight_decay&apos;: 0.01}
+device : cuda
+-- training dataset --
+AssignmentDataset(2655)
+-- starting training --
+  epoch    train_loss    valid_acc    valid_loss    cp       dur                                                                                              
+-------  ------------  -----------  ------------  ----  --------
+      1        <font color="#2AA1B3">0.7081</font>       <font color="#26A269">0.9859</font>        <font color="#A347BA">3.5583</font>     +  110.1200
+      2        <font color="#2AA1B3">0.2226</font>       <font color="#26A269">0.9968</font>        <font color="#A347BA">0.1638</font>     +  109.5286                                                                                              
+      3        <font color="#2AA1B3">0.2191</font>       0.9899        1.5369        110.0639                                                                                              
+      4        <font color="#2AA1B3">0.1138</font>       0.9713        0.2181        109.7539                                                                                              
+      5        <font color="#2AA1B3">0.0833</font>       0.9953        0.2657        110.5571                                                                                              
+      6        <font color="#2AA1B3">0.0585</font>       0.9859        4.0049        110.7627                                                                                              
+      7        <font color="#2AA1B3">0.0491</font>       0.9961        0.3733        111.5663                                                                                              
+      8        0.0789       0.9889        2.1560        112.3376                                                                                              
+ 36%|███████████████████████████████████▍                                                               | 949/2655 [00:44&lt;01:06, 25.73it/s, train_loss=0.0367](bread) <font color="#2AA1B3">(main)</font><font color="#5E5C64"> tracking</font> $ python train.py --max-epochs=40 --gamma=0.96 --step-size=512                                                                        
+-- arguments --
+{&apos;conv_hidden_channels&apos;: 120,
+ &apos;conv_num_layers&apos;: 5,
+ &apos;cv&apos;: 5,
+ &apos;dataset&apos;: &apos;colony_1234__dt_1234__t_all&apos;,
+ &apos;dropout_rate&apos;: 1e-07,
+ &apos;encoder_hidden_channels&apos;: 120,
+ &apos;encoder_num_layers&apos;: 4,
+ &apos;filter_file_mb&apos;: 10,
+ &apos;gamma&apos;: 0.96,
+ &apos;lr&apos;: 0.001,
+ &apos;max_epochs&apos;: 40,
+ &apos;step_size&apos;: 512,
+ &apos;weight_decay&apos;: 0.01}
+device : cuda
+-- training dataset --
+AssignmentDataset(2655)
+-- starting training --
+  epoch    train_loss    valid_acc    valid_loss    cp       dur                                                                                              
+-------  ------------  -----------  ------------  ----  --------
+      1        <font color="#2AA1B3">0.5797</font>       <font color="#26A269">0.9927</font>        <font color="#A347BA">0.6340</font>     +  113.1595
+      2        <font color="#2AA1B3">0.2227</font>       0.0979       10.0871        112.4232                                                                                              
+      3        <font color="#2AA1B3">0.1872</font>       <font color="#26A269">0.9959</font>        <font color="#A347BA">0.4018</font>     +  111.2765                                                                                              
+      4        <font color="#2AA1B3">0.1170</font>       0.9934        0.7745        110.2204                                                                                              
+      5        <font color="#2AA1B3">0.1038</font>       0.9933        0.7321        109.2263                                                                                              
+      6        <font color="#2AA1B3">0.0544</font>       0.9919        1.1493        109.1117                                                                                              
+      7        0.1214       0.9935        0.7861        108.9409                                                                                              
+      8        <font color="#2AA1B3">0.0489</font>       <font color="#26A269">0.9963</font>        <font color="#A347BA">0.3364</font>     +  109.0593                                                                                              
+      9        <font color="#2AA1B3">0.0475</font>       0.9906        1.4474        109.0366                                                                                              
+     10        <font color="#2AA1B3">0.0407</font>       0.9884        2.4750        108.8436                                                                                              
+     11        <font color="#2AA1B3">0.0381</font>       0.9896        1.8537        109.1778                                                                                              
+ 54%|████████████████████████████████████████████████████▌                                            | 1437/2655 [01:08&lt;01:02, 19.54it/s, train_loss=0.00822](bread) <font color="#2AA1B3">(main)</font><font color="#5E5C64"> tracking</font> $ python train.py --max-epochs=40 --gamma=0.96 --step-size=512                                                                        
+-- arguments --
+{&apos;conv_hidden_channels&apos;: 120,
+ &apos;conv_num_layers&apos;: 5,
+ &apos;cv&apos;: 5,
+ &apos;dataset&apos;: &apos;colony_1234__dt_1234__t_all&apos;,
+ &apos;dropout_rate&apos;: 1e-07,
+ &apos;encoder_hidden_channels&apos;: 120,
+ &apos;encoder_num_layers&apos;: 4,
+ &apos;filter_file_mb&apos;: 10,
+ &apos;gamma&apos;: 0.96,
+ &apos;lr&apos;: 0.001,
+ &apos;max_epochs&apos;: 40,
+ &apos;step_size&apos;: 512,
+ &apos;weight_decay&apos;: 0.01}
+device : cuda
+-- training dataset --
+AssignmentDataset(2655)
+-- starting training --
+  epoch    train_loss    valid_acc    valid_loss    cp       dur                                                                                              
+-------  ------------  -----------  ------------  ----  --------
+      1        <font color="#2AA1B3">0.5341</font>       <font color="#26A269">0.9887</font>        <font color="#A347BA">1.9575</font>     +  109.4036
+      2        <font color="#2AA1B3">0.3201</font>       <font color="#26A269">0.9952</font>        <font color="#A347BA">0.1617</font>     +  109.1807                                                                                              
+      3        <font color="#2AA1B3">0.1059</font>       <font color="#26A269">0.9961</font>        0.4037        109.2379                                                                                              
+      4        0.1507       0.9943        0.5465        109.2474                                                                                              
+      5        <font color="#2AA1B3">0.0954</font>       0.9956        0.4113        109.1409                                                                                              
+      6        <font color="#2AA1B3">0.0860</font>       0.9875        2.4828        108.9318                                                                                              
+      7        <font color="#2AA1B3">0.0611</font>       0.9960        0.4273        109.3710                                                                                              
+      8        <font color="#2AA1B3">0.0443</font>       0.9878        3.1492        109.0923                                                                                              
+      9        <font color="#2AA1B3">0.0420</font>       0.9941        0.7190        109.2978                                                                                              
+     10        <font color="#2AA1B3">0.0405</font>       0.9955        0.5070        109.2455                                                                                              
+     11        <font color="#2AA1B3">0.0403</font>       <font color="#26A269">0.9967</font>        <font color="#A347BA">0.0881</font>     +  109.3119                                                                                              
+     12        <font color="#2AA1B3">0.0380</font>       0.9885        2.3369        109.5158                                                                                              
+     13        <font color="#2AA1B3">0.0341</font>       <font color="#26A269">0.9970</font>        0.2872        109.2955                                                                                              
+     14        0.0345       0.9895        1.9809        109.1732                                                                                              
+     15        <font color="#2AA1B3">0.0327</font>       0.9897        1.9555        109.2734                                                                                              
+     16        <font color="#2AA1B3">0.0322</font>       0.9947        0.6046        108.9883                                                                                              
+     17        <font color="#2AA1B3">0.0318</font>       <font color="#26A269">0.9980</font>        0.1723        109.1573                                                                                              
+     18        <font color="#2AA1B3">0.0317</font>       0.9889        2.8356        109.1288                                                                                              
+     19        <font color="#2AA1B3">0.0307</font>       0.9855        6.3973        109.1493                                                                                              
+     20        0.0307       <font color="#26A269">0.9981</font>        0.3075        109.0726                                                                                              
+(bread) <font color="#2AA1B3">(main)</font><font color="#5E5C64"> tracking</font> $ python train.py --max-epochs=40 --gamma=0.96 --step-size=512
+-- arguments --
+{&apos;conv_hidden_channels&apos;: 120,
+ &apos;conv_num_layers&apos;: 5,
+ &apos;cv&apos;: 5,
+ &apos;dataset&apos;: &apos;colony_1234__dt_1234__t_all&apos;,
+ &apos;dropout_rate&apos;: 1e-07,
+ &apos;encoder_hidden_channels&apos;: 120,
+ &apos;encoder_num_layers&apos;: 4,
+ &apos;filter_file_mb&apos;: 10,
+ &apos;gamma&apos;: 0.96,
+ &apos;lr&apos;: 0.001,
+ &apos;max_epochs&apos;: 40,
+ &apos;step_size&apos;: 512,
+ &apos;weight_decay&apos;: 0.01}
+device : cuda
+-- training dataset --
+AssignmentDataset(2655)
+-- starting training --
+  epoch    train_loss    valid_acc    valid_loss    cp       dur                                                                                              
+-------  ------------  -----------  ------------  ----  --------
+      1        <font color="#2AA1B3">0.6221</font>       <font color="#26A269">0.9571</font>        <font color="#A347BA">1.7482</font>     +  112.4264
+      2        <font color="#2AA1B3">0.1853</font>       <font color="#26A269">0.9946</font>        <font color="#A347BA">0.4837</font>     +  110.7507                                                                                              
+      3        <font color="#2AA1B3">0.1404</font>       0.9882        2.4533        115.6696                                                                                              
+      4        <font color="#2AA1B3">0.1328</font>       0.9886        <font color="#A347BA">0.2127</font>     +  115.6330                                                                                              
+      5        <font color="#2AA1B3">0.0973</font>       <font color="#26A269">0.9951</font>        <font color="#A347BA">0.0659</font>     +  112.0576                                                                                              
+      6        <font color="#2AA1B3">0.0610</font>       <font color="#26A269">0.9963</font>        0.3360        113.0506                                                                                              
+      7        0.0666       0.9948        0.5907        113.2913                                                                                              
+      8        <font color="#2AA1B3">0.0512</font>       0.9861        4.2710        111.8764                                                                                              
+      9        <font color="#2AA1B3">0.0411</font>       0.9939        0.7260        112.2374                                                                                              
+     10        0.0540       0.9953        0.1651        112.3658                                                                                              
+     11        0.0542       <font color="#26A269">0.9977</font>        0.0898        112.1215                                                                                              
+     12        <font color="#2AA1B3">0.0376</font>       0.9873        2.9454        112.4048                                                                                              
+     13        <font color="#2AA1B3">0.0358</font>       0.9959        0.4236        111.7100                                                                                              
+     14        0.0371       0.9884        2.4615        110.4493                                                                                              
+     15        <font color="#2AA1B3">0.0346</font>       0.9901        1.5350        111.0586                                                                                              
+     16        0.0356       0.9923        1.0631        111.5628                                                                                              
+     17        <font color="#2AA1B3">0.0337</font>       0.9971        0.2259        111.5425                                                                                              
+     18        0.0337       0.9906        1.5254        109.5601                                                                                              
+     19        <font color="#2AA1B3">0.0328</font>       0.9883        2.4006        109.1920                                                                                              
+     20        <font color="#2AA1B3">0.0323</font>       <font color="#26A269">0.9983</font>        0.1011        110.6856                                                                                              
+     21        <font color="#2AA1B3">0.0317</font>       0.9930        0.8931        116.3980                                                                                              
+     22        <font color="#2AA1B3">0.0316</font>       0.9913        1.3326        115.3995                                                                                              
+     23        0.0318       0.9866        3.4344        115.4005                                                                                              
+     24        <font color="#2AA1B3">0.0310</font>       <font color="#26A269">0.9988</font>        <font color="#A347BA">0.0544</font>     +  114.3807                                                                                              
+     25        <font color="#2AA1B3">0.0309</font>       0.9825       12.9558        111.1476                                                                                              
+     26        <font color="#2AA1B3">0.0306</font>       0.9887        2.2421        111.4650                                                                                              
+     27        0.0306       0.9894        1.8375        110.4395                                                                                              
+     28        <font color="#2AA1B3">0.0304</font>       0.9934        0.8113        112.7463                                                                                              
+     29        <font color="#2AA1B3">0.0302</font>       0.9959        0.4496        111.2237                                                                                              
+     30        <font color="#2AA1B3">0.0301</font>       0.9981        0.1190        113.4870                                                                                              
+     31        <font color="#2AA1B3">0.0300</font>       0.9983        0.1241        110.0140                                                                                              
+     32        <font color="#2AA1B3">0.0300</font>       0.9987        0.1183        109.2163                                                                                              
+     33        0.0300       0.9987        0.0556        109.1879                                                                                              
+     34        <font color="#2AA1B3">0.0298</font>       0.9845        6.7757        109.6273                                                                                              
+     35        0.0298       0.9895        1.7712        109.3617                                                                                              
+     36        <font color="#2AA1B3">0.0297</font>       0.9881        2.6945        109.2662                                                                                              
+     37        <font color="#2AA1B3">0.0297</font>       0.9917        1.2481        109.3898                                                                                              
+     38        <font color="#2AA1B3">0.0297</font>       0.9987        0.1227        109.1435                                                                                              
+     39        <font color="#2AA1B3">0.0296</font>       0.9952        0.5377        109.3325                                                                                              
+     40        0.0296       0.9959        0.5198        109.3042                                                                                              
+(bread) <font color="#2AA1B3">(main)</font><font color="#5E5C64"> tracking</font> $ 
+
+</pre>

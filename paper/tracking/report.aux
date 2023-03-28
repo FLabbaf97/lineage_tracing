@@ -1,0 +1,117 @@
+\relax 
+\providecommand\hyper@newdestlabel[2]{}
+\providecommand\HyperFirstAtBeginDocument{\AtBeginDocument}
+\HyperFirstAtBeginDocument{\ifx\hyper@anchor\@undefined
+\global\let\oldcontentsline\contentsline
+\gdef\contentsline#1#2#3#4{\oldcontentsline{#1}{#2}{#3}}
+\global\let\oldnewlabel\newlabel
+\gdef\newlabel#1#2{\newlabelxx{#1}#2}
+\gdef\newlabelxx#1#2#3#4#5#6{\oldnewlabel{#1}{{#2}{#3}}}
+\AtEndDocument{\ifx\hyper@anchor\@undefined
+\let\contentsline\oldcontentsline
+\let\newlabel\oldnewlabel
+\fi}
+\fi}
+\global\let\hyper@last\relax 
+\gdef\HyperFirstAtBeginDocument#1{#1}
+\providecommand\HyField@AuxAddToFields[1]{}
+\providecommand\HyField@AuxAddToCoFields[2]{}
+\citation{li_deepergcn_2020}
+\citation{zhou_graph_2021}
+\citation{paszke_pytorch_2019}
+\citation{fey_fast_2019}
+\citation{bipartite}
+\citation{dietler_convolutional_2020}
+\citation{viterbi}
+\citation{viterbi2}
+\citation{dietler_convolutional_2020}
+\citation{he}
+\citation{delta}
+\citation{payer}
+\citation{hayashida}
+\citation{moen}
+\citation{Cuny2022}
+\citation{dietler_convolutional_2020}
+\citation{yeastnet}
+\citation{kruitbosch}
+\@writefile{toc}{\contentsline {section}{\numberline {I}Introduction and problem statement}{1}{section.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {II}Prior work}{1}{section.2}\protected@file@percent }
+\citation{dezoort_charged_2021}
+\citation{kipf_semi-supervised_2017}
+\citation{dietler_convolutional_2020}
+\@writefile{toc}{\contentsline {section}{\numberline {III}Data preprocessing}{2}{section.3}\protected@file@percent }
+\newlabel{sec:data_preprocessing}{{III}{2}{Data preprocessing}{section.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-A}}Feature extraction and cell graph generation}{2}{subsection.3.1}\protected@file@percent }
+\newlabel{sec:data_preprocessing:featext}{{\mbox  {III-A}}{2}{Feature extraction and cell graph generation}{subsection.3.1}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Histogram of node features (20 bins). For area and cell radius, a log scale is used in order to emphasize the outliers (very large cells). Sample size is 25510 nodes.\relax }}{2}{figure.caption.1}\protected@file@percent }
+\providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
+\newlabel{fig:hist_x}{{1}{2}{Histogram of node features (20 bins). For area and cell radius, a log scale is used in order to emphasize the outliers (very large cells). Sample size is 25510 nodes.\relax }{figure.caption.1}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Histogram of edge features (20 bins). For CM-to-CM and cell contour distance, a log scale is used. Sample size is 48018 edges.\relax }}{2}{figure.caption.2}\protected@file@percent }
+\newlabel{fig:hist_e}{{2}{2}{Histogram of edge features (20 bins). For CM-to-CM and cell contour distance, a log scale is used. Sample size is 48018 edges.\relax }{figure.caption.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-B}}Assignment graph generation}{2}{subsection.3.2}\protected@file@percent }
+\citation{dietler_convolutional_2020}
+\citation{dietler_convolutional_2020}
+\citation{li_deepergcn_2020}
+\citation{2020SciPy-NMeth}
+\citation{li_deepergcn_2020}
+\citation{li_deepergcn_2020}
+\@writefile{toc}{\contentsline {section}{\numberline {IV}Methods}{3}{section.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-A}}GNN structure}{3}{subsection.4.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-B}}Making predictions}{3}{subsection.4.2}\protected@file@percent }
+\newlabel{sec:methods:pred}{{\mbox  {IV-B}}{3}{Making predictions}{subsection.4.2}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {V}Results}{3}{section.5}\protected@file@percent }
+\citation{ioffe_batch_2015}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Data preprocessing pipeline. A phase contrast timelapse microscopy of a budding yeast colony is taken, then YeaZ \cite  {dietler_convolutional_2020} is used to segment individual frames, and semi-automatically track cells. Manual corrections to segmentation and tracking are applied as required. From the segmentations, geometric features are extracted, as well as features describing the neighborhood of each cell. This is stored in a graph structure $\mathcal  {G}^{(1)}$ and $\mathcal  {G}^{(2)}$, from which an assignment graph $\mathcal  {G}^{(a;x,e)}$ is built. A ground truth assignment graph $\mathcal  {G}^{(a;y)}$ is also built. Both assignment graphs are then used by the GNN for training.\relax }}{4}{figure.caption.3}\protected@file@percent }
+\newlabel{fig:pipeline}{{3}{4}{Data preprocessing pipeline. A phase contrast timelapse microscopy of a budding yeast colony is taken, then YeaZ \cite {dietler_convolutional_2020} is used to segment individual frames, and semi-automatically track cells. Manual corrections to segmentation and tracking are applied as required. From the segmentations, geometric features are extracted, as well as features describing the neighborhood of each cell. This is stored in a graph structure $\G ^{(1)}$ and $\G ^{(2)}$, from which an assignment graph $\G ^{(a;x,e)}$ is built. A ground truth assignment graph $\G ^{(a;y)}$ is also built. Both assignment graphs are then used by the GNN for training.\relax }{figure.caption.3}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces The GNN structure. For a given input graph, the node and edge features are encoded by MLPs. The resulting graph is then convolved multiple times following DeepGCN \cite  {li_deepergcn_2020}. A final linear layer maps the encoded node features down to two, and CrossEntropyLoss is computed for backpropagation. For evaluation, the node features of $\mathcal  {G}^{(a;\hat  y)}$ can be reduced and reshaped to build an assignment matrix.\relax }}{4}{figure.caption.4}\protected@file@percent }
+\newlabel{fig:nn}{{4}{4}{The GNN structure. For a given input graph, the node and edge features are encoded by MLPs. The resulting graph is then convolved multiple times following DeepGCN \cite {li_deepergcn_2020}. A final linear layer maps the encoded node features down to two, and CrossEntropyLoss is computed for backpropagation. For evaluation, the node features of $\G ^{(a;\hat y)}$ can be reduced and reshaped to build an assignment matrix.\relax }{figure.caption.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-A}}MLP baseline}{4}{subsection.5.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-B}}GNN performance}{4}{subsection.5.2}\protected@file@percent }
+\citation{dietler_convolutional_2020}
+\citation{stringer_cellpose_2020}
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Parallel coordinates plot of the hyperparameter scan. The best performing model uses $N_\textrm  {enc}=5$, $N_\textrm  {conv}=11$, $N_\textrm  {dim}=120$, but a very similar performance can be achieved for less parameters, $N_\textrm  {enc} \geq 3$, $N_\textrm  {conv} \geq 8$ and $N_\textrm  {dim} \geq 80$.\relax }}{5}{figure.caption.6}\protected@file@percent }
+\newlabel{fig:hparams}{{5}{5}{Parallel coordinates plot of the hyperparameter scan. The best performing model uses $N_\textrm {enc}=5$, $N_\textrm {conv}=11$, $N_\textrm {dim}=120$, but a very similar performance can be achieved for less parameters, $N_\textrm {enc} \geq 3$, $N_\textrm {conv} \geq 8$ and $N_\textrm {dim} \geq 80$.\relax }{figure.caption.6}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {VI}Conclusion}{5}{section.6}\protected@file@percent }
+\citation{singer_node_2019}
+\citation{jin_recurrent_2020}
+\citation{rossi_temporal_2020}
+\bibstyle{IEEEtran}
+\bibdata{literature}
+\bibcite{li_deepergcn_2020}{1}
+\bibcite{zhou_graph_2021}{2}
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces a) Accuracy strip-plot and b) fraction of perfect trackings as a function of time difference between frames. A perfect tracking is defined as a prediction containing no tracking mistakes. Note that this plot omits some accuracy outliers around 0.3, originating from the Hungarian algorithm. At the minimal time difference of 5 minutes, the Hungarian algorithm makes 3 mistakes (see \begingroup \def Equation{\textsc  {Eq.}}\def Table{\textsc  {Tab.}}\def Figure{\textsc  {Fig.}}\autoref  {fig:mistracks}\endgroup ), whereas our method makes none. The performance decays as time between frames increases, and the tracking task becomes harder. The Hungarian algorithm's accuracy decays much faster than the GNN, showing our method is more stable, as well a performing better.\relax }}{6}{figure.caption.9}\protected@file@percent }
+\newlabel{fig:timediff_accuracy}{{6}{6}{a) Accuracy strip-plot and b) fraction of perfect trackings as a function of time difference between frames. A perfect tracking is defined as a prediction containing no tracking mistakes. Note that this plot omits some accuracy outliers around 0.3, originating from the Hungarian algorithm. At the minimal time difference of 5 minutes, the Hungarian algorithm makes 3 mistakes (see \shortautoref {fig:mistracks}), whereas our method makes none. The performance decays as time between frames increases, and the tracking task becomes harder. The Hungarian algorithm's accuracy decays much faster than the GNN, showing our method is more stable, as well a performing better.\relax }{figure.caption.9}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces Segmentations from the test dataset highlighting moving cells. Out of the 179 interframes, YeaZ makes 3 tracking mistakes. On frame 115, cells 9 and 14 move together towards cell 5, and YeaZ tracks cell 9 to cell 16 and cell 14 to cell 9. On frame 163, cell 22 moves around the top of the colony, and YeaZ tracks cell 10 to 22, cell 10 to 29, cell 29 to cell 25 and cell 25 to 34. On frame 171, cells 22 and 34 move together around the top while swapping places, and YeaZ tracks cell 22 to 34 and vice-versa.\relax }}{6}{figure.caption.10}\protected@file@percent }
+\newlabel{fig:mistracks}{{7}{6}{Segmentations from the test dataset highlighting moving cells. Out of the 179 interframes, YeaZ makes 3 tracking mistakes. On frame 115, cells 9 and 14 move together towards cell 5, and YeaZ tracks cell 9 to cell 16 and cell 14 to cell 9. On frame 163, cell 22 moves around the top of the colony, and YeaZ tracks cell 10 to 22, cell 10 to 29, cell 29 to cell 25 and cell 25 to 34. On frame 171, cells 22 and 34 move together around the top while swapping places, and YeaZ tracks cell 22 to 34 and vice-versa.\relax }{figure.caption.10}{}}
+\@writefile{toc}{\contentsline {section}{References}{6}{section*.11}\protected@file@percent }
+\bibcite{paszke_pytorch_2019}{3}
+\bibcite{fey_fast_2019}{4}
+\bibcite{bipartite}{5}
+\bibcite{dietler_convolutional_2020}{6}
+\bibcite{viterbi}{7}
+\bibcite{viterbi2}{8}
+\bibcite{he}{9}
+\bibcite{delta}{10}
+\bibcite{payer}{11}
+\bibcite{hayashida}{12}
+\bibcite{moen}{13}
+\bibcite{Cuny2022}{14}
+\bibcite{yeastnet}{15}
+\bibcite{kruitbosch}{16}
+\bibcite{dezoort_charged_2021}{17}
+\bibcite{kipf_semi-supervised_2017}{18}
+\bibcite{2020SciPy-NMeth}{19}
+\bibcite{ioffe_batch_2015}{20}
+\bibcite{stringer_cellpose_2020}{21}
+\bibcite{singer_node_2019}{22}
+\bibcite{jin_recurrent_2020}{23}
+\bibcite{rossi_temporal_2020}{24}
+\@writefile{toc}{\contentsline {section}{\numberline {VII}Appendix}{8}{section.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VII-A}}Mean accuracy}{8}{subsection.7.1}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {8}{\ignorespaces Mean accuracy as a function of time difference between frames.\relax }}{8}{figure.caption.12}\protected@file@percent }
+\newlabel{fig:mean_acc}{{8}{8}{Mean accuracy as a function of time difference between frames.\relax }{figure.caption.12}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VII-B}}Python environment}{8}{subsection.7.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VII-C}}Details of the microscope}{8}{subsection.7.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VII-D}}Details of the strain}{8}{subsection.7.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VII-E}}Details of media and microfluidics chip used for growth}{8}{subsection.7.5}\protected@file@percent }
+\gdef \@abspage@last{8}

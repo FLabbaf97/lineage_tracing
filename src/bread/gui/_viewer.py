@@ -7,8 +7,8 @@ from typing import Optional, List
 from pathlib import Path
 import pyqtgraph as pg
 from bread.data import Lineage, Microscopy, Segmentation
-from ._state import APP_STATE
-from ._utils import lerp
+from _state import APP_STATE
+from _utils import lerp
 
 __all__ = ['Viewer']
 

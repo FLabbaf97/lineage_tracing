@@ -5,7 +5,7 @@ from PySide6.QtWidgets import QWidget, QMenuBar, QMainWindow, QFormLayout, QVBox
 from PySide6.QtCore import QObject, Signal, Slot, QThread
 from bread.algo.lineage import *
 from bread.data import Lineage
-from ._state import APP_STATE
+from _state import APP_STATE
 
 class NameAndDescription(QWidget):
 	def __init__(self, name: str, desc: str, parent: Optional[QWidget] = None) -> None:

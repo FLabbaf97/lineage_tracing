@@ -7,8 +7,8 @@ from pathlib import Path
 import warnings
 import numpy as np
 from bread.data import Lineage, Microscopy, Segmentation
-from ._state import APP_STATE
-from ._wizards import GuesserWizard
+from _state import APP_STATE
+from _wizards import GuesserWizard
 
 __all__ = ['Editor']
 

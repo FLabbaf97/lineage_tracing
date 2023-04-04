@@ -3,7 +3,7 @@ from bread.data import Lineage, Microscopy, Segmentation
 from typing import Optional, List
 from dataclasses import dataclass, field
 from pathlib import Path
-from ._utils import clamp
+from _utils import clamp
 
 __all__ = ['AppState', 'APP_STATE']
 

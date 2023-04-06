@@ -4,10 +4,11 @@ import scipy.ndimage, scipy.spatial
 import warnings
 import cv2 as cv
 from pathlib import Path
-from typing import Tuple, Union, Optional, List
-from dataclasses import dataclass
+from typing import Tuple, Union, Optional, List, Dict
+from dataclasses import dataclass, field
 from ._utils import load_npz
 from ._exception import BreadException, BreadWarning
+from nd2reader import ND2Reader
 
 __all__ = ['Lineage', 'Microscopy', 'Segmentation', 'Contour', 'Ellipse']
 
@@ -152,34 +153,55 @@ class Lineage:
 class Microscopy:
 	"""Store a raw microscopy movie.
 	
-	data : numpy.ndarray (shape=(T, W, H))
+	data : Dictionary:{str (V) : numpy.ndarray (shape=( T, W, H))} 
+		V: field of view name (e.g. 'FOV0')
 		T : number of timeframes
 		W, H : shape of the images
 	"""
 
-	data: np.ndarray
-
-	def __getitem__(self, index):
-		return self.data[index]
-		
-	def __len__(self):
-		return len(self.data)
-
-	def __post_init__(self):
-		if self.data.ndim == 2:
-			warnings.warn('Microscopy was given data with 2 dimensions, adding an empty dimension for time.')
-			self.data = self.data[None, ...]
-
-		assert self.data.ndim == 3, 'Microscopy data should have 3 dimensions, expected shape (time, height, width)'
+	data: Dict[str, Dict[str, np.ndarray]]
+	channel: str
+	field_of_views: Optional[List[str]] = field(default_factory=list)
+	file_path: Optional[str] = None
 
 	def __repr__(self) -> str:
-		return 'Microscopy(num_frames={}, frame_height={}, frame_width={})'.format(*self.data.shape)
+		return 'Microscopy(channel={}, num_fovs={}, num_frames={}, frame_height={}, frame_width={})'.format(self.channel, len(self.data), *self.data['FOV0'
+		].shape)
+
+	
+	def get_frame(self, fov, index):
+		try:
+			return self.data[fov][index]
+		except IndexError:
+			print(f'Index {index} out of range for fov {fov} with {len(self.data[fov])} frames.')
+			return np.zeros(self.data['FOV0'][0].shape)
+		
+	def get_frame_count(self, fov):
+		return len(self.data[fov])
+	
+	def get_frames(self, fov):
+		try:
+			return self.data[fov]
+		except KeyError:
+			print(f'KeyError: {index} out of range for fov {fov} with {len(self.data[fov])} frames.')
+			return np.zeros(self.data['FOV0'].shape)
+
+	def get_channel(self):
+		return self.channel
+	
+	def get_file_path(self):
+		return self.file_path
 
 	@staticmethod
 	def from_tiff(filepath: Path) -> 'Microscopy':
 		import tifffile
 		data = tifffile.imread(filepath)
-		return Microscopy(data=data)
+		if data.ndim == 2:
+			warnings.warn('Microscopy was given data with 2 dimensions, adding empty dimensions for time.')
+			data = data[None, ...]
+
+      
+		return Microscopy(data={'FOV0':data}, field_of_views=['FOV0'], channel='Channel0', file_path=str(filepath))
 
 	@staticmethod
 	def from_npzs(filepaths: Union[Path, List[Path]]) -> 'Microscopy':
@@ -198,8 +220,50 @@ class Microscopy:
 		if not isinstance(filepaths, list):
 			filepaths = [filepaths]
 		data = np.array(load_npz(filepaths))
-		return Microscopy(data=data)
+		return Microscopy(data={'FOV0':data})
+	
+	@staticmethod
+	def from_nd2(filepath: Path, field_of_views: List[int] = None, channels: List[int] = None) -> 'Microscopy':
+		"""Loads a microscopy movie from an ND2 file with the specified field of views and channels.
 
+		Parameters
+		----------
+		filepath : Path
+			Path to the ND2 file.
+		field_of_views : list[int], optional
+			List of field of views to load. If not specified, loads all available field of views.
+		channels : list[int], optional
+			List of channels to load. If not specified, loads all available channels.
+
+		Returns
+		-------
+		Microscopy
+		"""
+		with ND2Reader(str(filepath)) as images:
+			sizec = images.sizes['c'] if 'c' in images.sizes  else 1		                    
+			sizev = images.sizes['v'] if 'v' in images.sizes else 1
+			try:
+				channel_names = images.metadata['channels'] if images.metadata['channels'] else [f'Channel{n}' for n in range(sizec)]
+			except KeyError:
+				channel_names = [f'Channel{n}' for n in range(sizec)]
+			
+			field_of_view_names = [ f'FOV{n}' for n in list(range(sizev)) ]
+
+			microscopies = []
+			for channel in range(sizec):
+				microscopy = {}
+				channel_key = channel_names[channel]
+				for field_of_view in range(sizev):
+					field_of_view_key = field_of_view_names[field_of_view]
+					images.bundle_axes = 'tyx'  # Set the order of axes for the output array
+					if sizec > 1:
+						images.default_coords['c'] = channel  # Set the channel to read
+					if sizev > 1:
+						images.default_coords['v'] = field_of_view  # Set the field of view to read
+					microscopy[field_of_view_key] = np.array(images[0])
+				microscopies.append(Microscopy(data=microscopy, field_of_views=field_of_view_names, channel=channel_key, file_path=str(filepath)))
+
+		return microscopies , channel_names
 
 @dataclass
 class Segmentation:
@@ -207,30 +271,44 @@ class Segmentation:
 
 	Each image stores ids corresponding to the mask of the corresponding cell.
 
-	data : numpy.ndarray (shape=(T, W, H))
+	data : Dictionary:{str (V) : numpy.ndarray (shape=( T, W, H))} 
+		V: field of view name (e.g. 'FOV0')
 		T : number of timeframes
 		W, H : shape of the images
 	"""
 
-	data: np.ndarray
+	data: Dict[str, np.ndarray]
+	field_of_views: Optional[List[str]] = field(default_factory=list)
+	filepath: Optional[str] = None
 
-	def __getitem__(self, index):
-		return self.data[index]
+	def __getitem__(self, fov, index):
+		return self.data[fov][index]
+	
+	def get_file_path(self):
+		return self.filepath
+	
+	def get_frame(self, fov, index):
+		try:
+			if fov not in self.data.keys():
+				Exception('FOV not in data')
+			elif index >= self.get_frame_count(fov):
+				Exception('Index out of range')
+				return none
+			else:
+				return self.data[fov][index]
+		except IndexError:
+			return np.zeros(self.data['FOV0'][0].shape)
+		
+	def get_frame_count(self, fov):
+		return len(self.data[fov])
+	
+	def get_frames(self, fov):
+		try:
+			return self.data[fov]
+		except KeyError:
+			return np.zeros(self.data['FOV0'].shape)
 
-	def __len__(self):
-		return len(self.data)
-
-	def __post_init__(self):
-		if self.data.ndim == 2:
-			warnings.warn('Microscopy was given data with 2 dimensions, adding an empty dimension for time.')
-			self.data = self.data[None, ...]
-
-		assert self.data.ndim == 3
-
-	def __repr__(self) -> str:
-		return 'Segmentation(num_frames={}, frame_height={}, frame_width={})'.format(*self.data.shape)
-
-	def cell_ids(self, time_id: Optional[int] = None, background_id: Optional[int]=0) -> List[int]:
+	def cell_ids(self, fov, time_id: Optional[int] = None, background_id: Optional[int]=0) -> List[int]:
 		"""Returns cell ids from a segmentation
 
 		Parameters
@@ -239,7 +317,7 @@ class Segmentation:
 			frame index in the movie. If None, returns all the cellids encountered in the movie
 		background_id : int or None, optional
 			if not None, remove id `background_id` from the cell ids
-
+		fov: str, represent the field of view that is represented by the segmentation
 		Returns
 		-------
 		List[int]
@@ -247,16 +325,16 @@ class Segmentation:
 		"""
 
 		if time_id is None:
-			all_ids = np.unique(self.data.flat)
+			all_ids = np.unique(self.data[fov].flat)
 		else:
-			all_ids = np.unique(self.data[time_id].flat)
+			all_ids = np.unique(self.data[fov][time_id].flat)
 
 		if background_id is not None:
 			return list(all_ids[all_ids != background_id])
 		else:
 			return list(all_ids)
 
-	def cms(self, time_id: int, cell_ids: Optional[List[int]] = None) -> np.ndarray:
+	def cms(self, fov, time_id: int, cell_ids: Optional[List[int]] = None) -> np.ndarray:
 		"""Returns centers of mass of cells in a segmentation
 
 		Parameters
@@ -266,6 +344,7 @@ class Segmentation:
 		cell_ids : List[int]
 			List of cell ids for which to compute the centers of mass, by default None.
 			If ``None``, ``cell_ids`` becomes all the cells in the frame
+		fov: str, represent the field of view that is represented by the segmentation
 
 		Returns
 		-------
@@ -274,15 +353,15 @@ class Segmentation:
 		"""
 
 		if cell_ids is None:
-			cell_ids = self.cell_ids(time_id)
+			cell_ids = self.cell_ids(fov, time_id)
 		cms = np.zeros((len(cell_ids), 2))
 
 		for i, cell_id in enumerate(cell_ids):
-			cms[i] = scipy.ndimage.center_of_mass(self.data[time_id] == cell_id)
+			cms[i] = scipy.ndimage.center_of_mass(self.data[fov][time_id] == cell_id)
 
 		return cms
 
-	def find_buds(self) -> Lineage:
+	def find_buds(self, fov) -> Lineage:
 		"""Return IDs of newly created cells
 
 		Returns
@@ -294,7 +373,7 @@ class Segmentation:
 		bud_ids, time_ids = [], []
 
 		for idt in range(len(self)):
-			cellids = self.cell_ids(idt)
+			cellids = self.cell_ids(idt, fov)
 			diffids = np.setdiff1d(cellids, bud_ids, assume_unique=True)
 
 			bud_ids += list(diffids)
@@ -306,7 +385,7 @@ class Segmentation:
 			time_ids=np.array(time_ids, dtype=int)
 		)
 
-	def request_frame_range(self, time_id_from: int, time_id_to: int):
+	def request_frame_range(self, fov, time_id_from: int, time_id_to: int):
 		"""Generate a range of valid frames going from time_id_from (inclusive) to time_id_to (exclusive)
 
 		Parameters
@@ -326,29 +405,34 @@ class Segmentation:
 		num_frames_available = min(max(0, len(self) - time_id_from), num_frames)
 		return range(time_id_from, time_id_from + num_frames_available)
 
-	def crop(self, x: int, y: int, w: int, h: int) -> 'Segmentation':
+	def crop(self, fov, x: int, y: int, w: int, h: int) -> 'Segmentation':
 		"""Return a cropped version of the segmentation"""
-		return Segmentation(self.data[:, y:y+h, x:x+w])
+		return Segmentation(self.data[fov][:, y:y+h, x:x+w])
 
 	@staticmethod
-	def from_h5(filepath: Path, fov: str = 'FOV0', load_frames: Optional[List[int]] = None) -> 'Segmentation':
+	def from_h5(filepath: Path, load_frames: Optional[List[int]] = None) -> 'Segmentation':
 		"""Read h5 segmentation data from YeaZ"""
 		import h5py
-		file = h5py.File(filepath, 'r')
-
-		if load_frames is None:
-			load_frames = list(range(len(file[fov].keys())))
-		
-		keys = [ f'T{n}' for n in load_frames ]
-
-		imgs = np.zeros((len(keys), *file[fov]['T0'].shape), dtype=int)
-		for i, key in enumerate(keys):
-			imgs[i] = np.array(file[fov][key])
+		file = h5py.File(filepath, "r")
+		data = {}
+		try:
+			# Get the top-level groups in the file
+			groups = list(file.keys())
+			for fov in groups:
+				# Get the frames in the FOV
+				load_frames = list(range(len(file[fov].keys())))
+				keys = [ f'T{n}' for n in load_frames ]
+				imgs = np.zeros((len(keys), *file[fov]['T0'].shape), dtype=int)
+				for i, key in enumerate(keys):
+					imgs[i] = np.array(file[fov][key])
+				data[fov] = imgs
+		except Exception as e:
+			print("Error reading file: ", e)
 
 		file.close()
-		return Segmentation(imgs)
+		return Segmentation(data, field_of_views=groups, filepath=str(filepath))
 
-	def write_h5(self, filepath: Path, fov: str = 'FOV0'):
+	def write_h5(self, filepath: Path):
 		"""Write h5 segmentation to read using YeaZ"""
 		import h5py
 		file = h5py.File(filepath, 'w')

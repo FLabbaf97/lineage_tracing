@@ -1,0 +1,137 @@
+###################################################
+#A list of accuracies when features are removed
+#Index correspond to the index of the removed feature
+#acc_when_f_removed = []
+#batch_sizes = [100] #add 1, 2, 10, 20
+#learning_rates = [1e-2, 1e-3]
+#for feature_index in range(num_features):
+#    #removing the feature
+#    new_data = np.delete(x, feature_index, axis=2)
+#    # Do a scan through batch sizes and learning rates to find the best combination
+#    (highest_acc, best_param) = find_optimal_parameters(batch_sizes, learning_rates, model, new_data, y, n_epochs, num_classes, num_features - 1, use_conv = False, verbose = True)
+##print('Highest classification accuracy on a validation set is ' + f'{highest_acc:.3f}' + ' and is achieved using batch size ' + str(best_param[0]) + ' and learning rate ' + str(best_param[1]) + '.')
+#    acc_when_f_removed.append(highest_acc)
+
+#Result:
+#    [0.9106073379516602,
+# 0.8900769948959351,
+# 0.8977758884429932,
+# 0.9118905067443848,
+# 0.9088965058326721,
+# 0.8939264416694641,
+# 0.8708297610282898,
+# 0.8994867205619812,
+# 0.9131736755371094,
+# 0.9067578911781311,
+# 0.9153122305870056,
+# 0.9204448461532593]
+    
+#################################################
+#A list of accuracies when only one feature is kept
+#acc_when_f_kept = []
+#batch_sizes = [100] #add 1, 2, 10, 20
+#learning_rates = [1e-2, 1e-3]
+#for feature_index in range(num_features):
+#    #removing the feature
+#    new_data = x[:,:,feature_index]
+#    # Do a scan through batch sizes and learning rates to find the best combination
+#    (highest_acc, best_param) = find_optimal_parameters(batch_sizes, learning_rates, model, new_data, y, n_epochs, num_classes, 1, use_conv = False, verbose = True)
+##print('Highest classification accuracy on a validation set is ' + f'{highest_acc:.3f}' + ' and is achieved using batch size ' + str(best_param[0]) + ' and learning rate ' + str(best_param[1]) + '.')
+#    acc_when_f_kept.append(highest_acc)
+
+#Result:
+#    [0.7322497963905334,
+# 0.7908468842506409,
+# 0.4846022129058838,
+# 0.5923866629600525,
+# 0.5282292366027832,
+# 0.43883660435676575,
+# 0.5782720446586609,
+# 0.4499572217464447,
+# 0.344311386346817,
+# 0.3212147057056427,
+# 0.44054746627807617,
+# 0.36142000555992126]
+    
+#################################################
+#A list of accuracies when in additon to distance, only one feature is kept
+#acc_when_two_f_kept = []
+#batch_sizes = [100] #add 1, 2, 10, 20
+#learning_rates = [1e-2, 1e-3]
+#for feature_index in range(num_features):
+#    #removing the feature
+#    new_data = np.array([x[:,:,0], x[:, :, feature_index]])
+#    new_data = np.moveaxis(new_data, 0, 2)
+#    # Do a scan through batch sizes and learning rates to find the best combination
+#    (highest_acc, best_param) = find_optimal_parameters(batch_sizes, learning_rates, model, new_data, y, n_epochs, num_classes, 2, use_conv = False, verbose = True)
+##print('Highest classification accuracy on a validation set is ' + f'{highest_acc:.3f}' + ' and is achieved using batch size ' + str(best_param[0]) + ' and learning rate ' + str(best_param[1]) + '.')
+#    acc_when_two_f_kept .append(highest_acc)
+
+#Result:
+#    [0.7348160743713379,
+# 0.8041060566902161,
+# 0.753635585308075,
+# 0.7758768200874329,
+# 0.7630453109741211,
+# 0.7946963310241699,
+# 0.8704020380973816,
+# 0.7570573091506958,
+# 0.7510693073272705,
+# 0.7660393714904785,
+# 0.7356715202331543,
+# 0.7553464770317078]
+#################################################
+#A list of accuracies when we train on features 0 and 6 and one additional
+#acc_when_three_f_kept = []
+#batch_sizes = [100] #add 1, 2, 10, 20
+#learning_rates = [1e-2, 1e-3]
+#for feature_index in range(num_features):
+#    #removing the feature
+#    new_data = np.array([x[:,:,0], x[:, :, 6], x[:, :, feature_index]])
+#    new_data = np.moveaxis(new_data, 0, 2)
+#    # Do a scan through batch sizes and learning rates to find the best combination
+#    (highest_acc, best_param) = find_optimal_parameters(batch_sizes, learning_rates, model, new_data, y, n_epochs, num_classes, 3, use_conv = False, verbose = True)
+##print('Highest classification accuracy on a validation set is ' + f'{highest_acc:.3f}' + ' and is achieved using batch size ' + str(best_param[0]) + ' and learning rate ' + str(best_param[1]) + '.')
+#    acc_when_three_f_kept .append(highest_acc)
+#    
+#Result:
+#    [0.8725406527519226,
+# 0.886227548122406,
+# 0.875106930732727,
+# 0.8913601636886597,
+# 0.8635585904121399,
+# 0.8840889930725098,
+# 0.8759623765945435,
+# 0.8644140362739563,
+# 0.860136866569519,
+# 0.8532934188842773,
+# 0.8421728014945984,
+# 0.8485885262489319]
+#################################################
+#A list of accuracies when we train on features 0, 3 and 6 and one additional
+
+#acc_when_four_f_kept = []
+#batch_sizes = [100] #add 1, 2, 10, 20
+#learning_rates = [1e-2, 1e-3]
+#for feature_index in range(num_features):
+#    #removing the feature
+#    new_data = np.array([x[:,:,0], x[:, :, 3], x[:, :, 6], x[:, :, feature_index]])
+#    new_data = np.moveaxis(new_data, 0, 2)
+#    # Do a scan through batch sizes and learning rates to find the best combination
+#    (highest_acc, best_param) = find_optimal_parameters(batch_sizes, learning_rates, model, new_data, y, n_epochs, num_classes, 4, use_conv = False, verbose = True)
+##print('Highest classification accuracy on a validation set is ' + f'{highest_acc:.3f}' + ' and is achieved using batch size ' + str(best_param[0]) + ' and learning rate ' + str(best_param[1]) + '.')
+#    acc_when_four_f_kept.append(highest_acc)
+
+#Results:
+#    [0.871257483959198,
+# 0.899058997631073,
+# 0.8866552710533142,
+# 0.8819503784179688,
+# 0.8704020380973816,
+# 0.8883661031723022,
+# 0.8853721022605896,
+# 0.8742514848709106,
+# 0.8515825271606445,
+# 0.8575705885887146,
+# 0.8579983115196228,
+# 0.8618477582931519]

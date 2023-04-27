@@ -21,6 +21,14 @@ def main():
 		required=True
 	)
 
+	parser.add_argument(
+		'--fov',
+		help='Field of view to process (integer)',
+		type= int,
+		required=False,
+		default = 0
+	)
+
 	subparsers_lineage = parser.add_subparsers(
 		dest='lineage_algo',
 		required=True,
@@ -93,6 +101,27 @@ def main():
 		type=int,
 	)
 
+	# ML
+
+	parser_ml = subparsers_lineage.add_parser(
+		'ml',
+		help='Guess lineage relations by maximizing the expansion velocity of the bud with respect to the candidate parent.',
+		formatter_class=argparse.ArgumentDefaultsHelpFormatter
+	)
+	add_guesser_doc(parser_ml)
+	parser_ml.add_argument(
+		'--num_frames',
+		help='How many frames to consider to compute expansion velocity. At least 2 frames should be considered for good results',
+		default=bread.algo.lineage._lineage.LineageGuesserExpansionSpeed.num_frames,
+		type=int
+	)
+	parser_ml.add_argument(
+		'--bud_distance_max',
+		help='Maximal distance (in pixels) between points on the parent and bud contours to be considered as part of the "budding interface"',
+		default=bread.algo.lineage._lineage.LineageGuesserExpansionSpeed.bud_distance_max,
+		type=int
+	)
+	
 	# Expansion speed
 
 	parser_expspeed = subparsers_lineage.add_parser(
@@ -146,14 +175,17 @@ def main():
 
 	if args.lineage_algo == 'budneck':
 		from bread.algo.lineage import LineageGuesserBudLum
-		from bread.data import Segmentation, Lineage, Microscopy
+		from bread.data import Segmentation, Lineage, Microscopy, SegmentationFile
 
 		logger.info('Loading segmentation...')
-		segmentation = Segmentation.from_h5(args.segmentation_file)
+		segmentationFile = SegmentationFile.from_h5(args.segmentation_file)
+		fov = args.fov
+		segmentation = segmentationFile.get_segmentation("FOV"+str(fov))
 		logger.info(f'Loaded segmentation {segmentation}')
 
 		logger.info('Loading budneck channel movie...')
 		budneck_img = Microscopy.from_tiff(args.budneck_file)
+		budneck_img = budneck_img.get_fov('FOV'+str(fov))
 		logger.info(f'Loaded budneck channel movie {budneck_img}')
 
 		logger.info('Loading guesser...')
@@ -176,12 +208,43 @@ def main():
 		logger.info(f'Saving lineage...')
 		lineage_guess.save_csv(args.output_file)
 
-	if args.lineage_algo == 'expspeed':
-		from bread.algo.lineage import LineageGuesserExpansionSpeed
-		from bread.data import Segmentation, Lineage
+	if args.lineage_algo == 'ml':
+		from bread.algo.lineage import LineageGuesserML
+		from bread.data import Segmentation, Lineage, SegmentationFile
 
 		logger.info('Loading segmentation...')
-		segmentation = Segmentation.from_h5(args.segmentation_file)
+		segmentationFile = SegmentationFile.from_h5(args.segmentation_file)
+		fov = args.fov
+		segmentation = segmentationFile.get_segmentation("FOV"+str(fov))
+		logger.info(f'Loaded segmentation {segmentation}')
+
+		logger.info('Loading guesser...')
+		guesser = LineageGuesserML(
+			segmentation=segmentation,
+			nn_threshold=args.nn_threshold,
+			flexible_nn_threshold=args.flexible_nn_threshold,
+			num_frames_refractory=args.num_frames_refractory,
+			num_frames=args.num_frames,
+			bud_distance_max=args.bud_distance_max
+		)
+		logger.info(f'Loaded guesser {guesser}')
+
+		logger.info(f'Running guesser...')
+		lineage_guess: Lineage = guesser.guess_lineage()
+		
+		logger.info(f'Saving lineage...')
+		lineage_guess.save_csv(args.output_file)
+
+
+	if args.lineage_algo == 'expspeed':
+		from bread.algo.lineage import LineageGuesserExpansionSpeed
+		from bread.data import Segmentation, Lineage, SegmentationFile
+
+		logger.info('Loading segmentation...')
+		segmentationFile = SegmentationFile.from_h5(args.segmentation_file)
+		fov = args.fov
+		segmentation = segmentationFile.get_segmentation("FOV"+str(fov))
+
 		logger.info(f'Loaded segmentation {segmentation}')
 
 		logger.info('Loading guesser...')
@@ -204,10 +267,13 @@ def main():
 
 	if args.lineage_algo == 'mintheta':
 		from bread.algo.lineage import LineageGuesserMinTheta
-		from bread.data import Segmentation, Lineage
+		from bread.data import Segmentation, Lineage, SegmentationFil
 
 		logger.info('Loading segmentation...')
-		segmentation = Segmentation.from_h5(args.segmentation_file)
+		segmentationFile = SegmentationFile.from_h5(args.segmentation_file)
+		fov = args.fov
+		segmentation = segmentationFile.get_segmentation("FOV"+str(fov))
+
 		logger.info(f'Loaded segmentation {segmentation}')
 
 		logger.info('Loading guesser...')
@@ -229,10 +295,13 @@ def main():
 
 	if args.lineage_algo == 'mindist':
 		from bread.algo.lineage import LineageGuesserMinDistance
-		from bread.data import Segmentation, Lineage
+		from bread.data import Segmentation, Lineage, SegmentationFile
 
 		logger.info('Loading segmentation...')
-		segmentation = Segmentation.from_h5(args.segmentation_file)
+		segmentationFile = SegmentationFile.from_h5(args.segmentation_file)
+		fov = args.fov
+		segmentation = segmentationFile.get_segmentation("FOV"+str(fov))
+
 		logger.info(f'Loaded segmentation {segmentation}')
 
 		logger.info('Loading guesser...')

@@ -10,7 +10,7 @@ import scipy.ndimage
 from bread.data import Lineage, Microscopy, Segmentation, Ellipse, Contour, BreadException, BreadWarning, Features
 
 __all__ = [
-	'LineageGuesser', 'LineageGuesserBudLum', 'LineageGuesserExpansionSpeed', 'LineageGuesserMinDistance', 'LineageGuesserMinTheta',
+	'LineageGuesser', 'LineageGuesserBudLum', 'LineageGuesserExpansionSpeed', 'LineageGuesserMinDistance', 'LineageGuesserMinTheta', 'LineageGuesserML',
 	'LineageException', 'LineageWarning',
 	'NotEnoughFramesException', 'NotEnoughFramesWarning'
 ]
@@ -441,6 +441,209 @@ class LineageGuesserBudLum(_MajorityVoteMixin, LineageGuesser, _BudneckMixin):
 
 
 @dataclass
+class LineageGuesserML(LineageGuesser):
+	"""Guess lineage relations using a machine learning model with multiple input features that generated using segmentation file.
+	Parameters
+	----------
+	segmentation : Segmentation
+	nn_threshold : float, optional
+		cell masks separated by less than this threshold are considered neighbors, by default 8.0.
+	flexible_nn_threshold : bool, optional
+		If no nearest neighbours are found within the given threshold, try to find the closest one, by default False.
+	num_frames_refractory : int, optional
+		After a parent cell has budded, exclude it from the parent pool in the next frames.
+		It is recommended to set it to a low estimate, as high values will cause mistakes to propagate in time.
+		A value of 0 corresponds to no refractory period.
+		by default 0.
+	num_frames : int, optional
+		How many frames to consider to compute expansion velocity.
+		At least 2 frames should be considered for good results.
+		by default 5.
+	bud_distance_max : float, optional
+		Maximal distance (in pixels) between points on the parent and bud contours to be considered as part of the "budding interface".
+		by default 7.
+	"""
+	num_frames: int = 5
+	bud_distance_max: float = 8
+
+	def __post_init__(self):
+		LineageGuesser.__post_init__(self)
+		assert self.num_frames >= 2, f'not enough consecutive frames considered for analysis, got {self.num_frames}.'
+		self._features.budding_time = self.num_frames
+		self._features.bud_distance_max = self.bud_distance_max
+		import xgboost as xgb
+
+		# Load the saved model
+		# TODO: fix this type of path, make it relative to package
+		self.model_path = '/home/farzaneh/Documents/Bread/bread/src/bread/algo/lineage/XGBoost/best_model_for_matrix_data_10_features.json'
+		self.model = xgb.Booster()
+		self.model.load_model(self.model_path)
+
+		# set values for model inputes
+		self.number_of_nn = 4
+		self.number_of_features = 10
+	
+	def _get_ml_features(self, bud_id, candidate_id, time_id, selected_times):
+		"""Return the features to be used by the ML model for a given bud and candidate at a given time.
+		Parameters
+		----------
+		bud_id : int
+			id of the bud in the segmentation
+		candidate_id : int
+			id of the candidate in the segmentation
+		time_id : int
+			frame index in the movie
+		Returns
+		-------
+		summary features : numpy.ndarray (shape=(N,), dtype=float),
+			features to be used by the ML model
+		full features : numpy.ndarray (shape=(M,), dtype=float),
+			full set of features related to the bud and candidate
+		"""
+		budcm_to_budpt_l = np.zeros(self.num_frames, dtype=np.float64)
+		budcm_to_candidatecm_l = np.zeros(self.num_frames, dtype=np.float64)
+		expansion_vector_l = np.zeros(self.num_frames, dtype=np.float64)
+		position_bud = np.zeros(self.num_frames, dtype=np.float64)
+		orientation_bud = np.zeros(self.num_frames, dtype=np.float64)
+		distances = np.zeros(self.num_frames, dtype=np.float64)
+		for i_t, t in enumerate(selected_times):
+			candidatemaj = self._features.cell_maj(candidate_id, t)
+			budmaj = self._features.cell_maj(bud_id, t)
+			budcm_to_budpt = self._features.pair_budcm_to_budpt(t, bud_id, candidate_id)
+			budcm_to_candidatecm = self._features.pair_cmtocm(t, bud_id, candidate_id)
+			candidatecm_to_budpt = budcm_to_budpt - budcm_to_candidatecm
+			expansion_vector = self._features._expansion_vector(bud_id, candidate_id, t)
+			budcm_to_candidatecm_l[i_t] = np.linalg.norm(budcm_to_candidatecm)
+			budcm_to_budpt_l[i_t] = np.linalg.norm(budcm_to_budpt)
+			expansion_vector_l[i_t] = np.linalg.norm(expansion_vector)
+
+			# distance between bud and candidate
+			distances[i_t] = self._features.pair_dist(t, bud_id, candidate_id)
+			# position on candidate where bud appears
+			# both matter, the position (preferential toward major axis) as well as the change in position (no movement allowed)
+			innerproduct = np.dot(candidatemaj, candidatecm_to_budpt)
+			position_bud[i_t] = np.arccos(np.absolute(innerproduct) / np.linalg.norm(candidatemaj) / np.linalg.norm(candidatecm_to_budpt))   
+
+			# orientation of bud with respect to candidate
+			innerproduct = np.dot(budmaj, candidatecm_to_budpt)
+			orientation_bud[i_t] = np.arccos(np.absolute(innerproduct) / np.linalg.norm(budmaj) / np.linalg.norm(candidatecm_to_budpt))
+		
+		features_summary = []
+		features_full = []
+
+		# distances
+		features_summary.append(distances[0])
+		features_summary.append(distances.max())
+		
+		features_full.extend(distances)
+
+		# growth
+		m = np.polyfit(selected_times,budcm_to_candidatecm_l[0:len(selected_times)],1)[0]
+		m_budpt = np.polyfit(selected_times,budcm_to_budpt_l[0:len(selected_times)],1)[0]
+		m_exvec = np.polyfit(selected_times,expansion_vector_l[0:len(selected_times)],1)[0]
+		features_summary.append(m)
+		features_summary.append(m_budpt)
+		features_summary.append(m_exvec)
+		
+		features_full.extend(budcm_to_candidatecm_l)
+		
+		features_full.extend(budcm_to_budpt_l)
+		
+		features_full.extend(expansion_vector_l)
+
+		# position and movement around mother
+		features_summary.append(position_bud[0])
+		features_summary.append(position_bud.std())
+		
+		features_full.extend(position_bud)
+
+		# orientation of bud
+		features_summary.append(orientation_bud[0])
+
+		m = np.polyfit(selected_times,orientation_bud[0:len(selected_times)],1)[0]
+		features_summary.append(m)
+		features_summary.append(orientation_bud[len(selected_times)-1])
+		
+		features_full.extend(orientation_bud)
+
+		return features_summary, features_full
+	
+	def guess_parent(self, bud_id, time_id):
+		candidate_parents = self._candidate_parents(time_id, nearest_neighbours_of=bud_id)
+		frame_range = self.segmentation.request_frame_range(time_id, time_id + self.num_frames)
+		num_frames_available = self.num_frames
+		if len(frame_range) < 2:
+			raise NotEnoughFramesException(bud_id, time_id, self.num_frames, len(frame_range))
+		if len(frame_range) < self.num_frames:
+			num_frames_available = len(frame_range)
+			warnings.warn(NotEnoughFramesWarning(bud_id, time_id, self.num_frames, len(frame_range)))
+
+		# check the bud still exists !
+		for time_id_ in frame_range:
+			if bud_id not in self.segmentation.cell_ids(time_id_):
+				raise LineageGuesserExpansionSpeed.BudVanishedException(bud_id, time_id_)
+		selected_times = [i for i in range(time_id, time_id + num_frames_available)]
+
+		# get features for all candidates
+		summary_features = np.zeros((len(candidate_parents), self.number_of_features), dtype=np.float64)
+		for c_id , candidate in enumerate(candidate_parents):
+			summary_features[c_id], _ = self._get_ml_features(bud_id, candidate, time_id, selected_times)
+		
+		# Find the id of parent with the highest probability using the ml model
+		try:
+			parent_id = self.predict_parent(bud_id, summary_features.reshape((1, ) + summary_features.shape))
+			return candidate_parents[parent_id]
+		except Exception as e:
+			# check if there is only one candidate, if so return it
+			if len(candidate_parent==1):
+				return candidate_parents[0]
+			# If the model fails, return -3 which means that there is no guess for this bud
+			else:
+				return -3
+		
+	def predict_parent(self, bud_id, batch_features):
+		import xgboost as xgb
+		import json
+
+		if(self.model is None):
+			raise Exception("No model was loaded")
+		# Get the number of features in the model
+		num_features = self.number_of_nn * self.number_of_features
+		# Prepare the data for prediction
+		X = batch_features #X is the set that is going to be used
+		X = self._flatten_3d_array(X)
+		if X.shape[1] < num_features:
+			# Pad X with -1.0 for any missing features/candidates
+			X_padded = np.pad(X, ((0, 0), (0, num_features - X.shape[1])), mode='constant', constant_values=-1.0)
+		else:
+			X_padded = X
+
+		dtest = xgb.DMatrix(X_padded)
+
+		# Make predictions using the loaded model
+		preds = self.model.predict(dtest)
+		preds = np.round(preds)
+		return int(preds[0])
+
+	def _keep_features(self, matrices, feature_columns = [0,1,2,3]):
+		"""
+		For a list of bud matrices keep only certain features
+		"""
+		new_matrices = np.zeros((matrices.shape[0], matrices.shape[1], len(feature_columns)))
+		for i, fid in enumerate(feature_columns):
+			new_matrices[:,:,i] = matrices[:,:,fid]
+		return new_matrices
+
+	def _flatten_3d_array(self,arr):
+		"""
+		Flattens a 3-dimensional numpy array while keeping the first dimension unchanged
+		"""
+		shape = arr.shape
+		new_shape = (shape[0], np.prod(shape[1:]))
+		return arr.reshape(new_shape)
+
+		
+@dataclass
 class LineageGuesserExpansionSpeed(LineageGuesser):
 	"""Guess lineage relations by maximizing the expansion velocity of the bud with respect to the candidate parent.
 	
@@ -518,7 +721,7 @@ class LineageGuesserExpansionSpeed(LineageGuesser):
 			if bud_id not in self.segmentation.cell_ids(time_id_):
 				raise LineageGuesserExpansionSpeed.BudVanishedException(bud_id, time_id_)
 
-		dists_all = [self._features._expansion_distances(bud_id, parent_id, time_id, self.num_frames) for parent_id in candidate_parents]
+		dists_all = [self._features._expansion_distance(bud_id, parent_id, time_id) for parent_id in candidate_parents]
 		# numpy.gradient can work with nan values
 		# dists might contain nan values, we need to use numpy.nanmean to ignore them for the velocity computation
 		mean_vels = np.array([np.nanmean(np.gradient(dists)) for dists in dists_all])

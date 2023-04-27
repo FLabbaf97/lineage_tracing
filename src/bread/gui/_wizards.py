@@ -129,6 +129,39 @@ class GuesserBudneckParams(GuesserParams):
 		self.offset_frames.setValue(LineageGuesserBudLum.offset_frames)
 		self.num_frames.setValue(LineageGuesserBudLum.num_frames)
 
+class GuesserMLParams(GuesserParams):
+	def __init__(self, parent: Optional[QWidget] = None) -> None:
+		super().__init__(parent)
+
+		self.num_frames = QSpinBox(self)
+		self.num_frames.setMinimum(0)
+
+		self.bud_distance_max = QDoubleSpinBox(self)
+		self.bud_distance_max.setSingleStep(0.5)
+
+		self.layout().addRow(
+			NameAndDescription(
+				'Number of frames',
+				'How many frames to consider to compute features. At least 2 frames should be considered for good results. by default 5'
+			),
+			self.num_frames
+		)
+		self.layout().addRow(
+			NameAndDescription(
+				'Max interface distance',
+				'Maximal distance (in pixels) between points on the parent and bud contours to be considered as part of the "budding interface". by default 7'
+			),
+			self.bud_distance_max
+		)
+
+		self.registerField('num_frames', self.num_frames)
+		self.registerField('bud_distance_max', self.bud_distance_max)
+
+	def initializePage(self):
+		super().initializePage()
+		self.num_frames.setValue(LineageGuesserExpansionSpeed.num_frames)
+		self.bud_distance_max.setValue(LineageGuesserExpansionSpeed.bud_distance_max)
+
 
 class GuesserExpSpeedParams(GuesserParams):
 	def __init__(self, parent: Optional[QWidget] = None) -> None:
@@ -272,8 +305,8 @@ class GuesserBudneckLaunch(GuesserLaunch):
 		super().__init__(parent)
 
 	def guesser(self):
-		segmentation = APP_STATE.data.segmentation
-		budneck_img = APP_STATE.data.budneck
+		segmentation = APP_STATE.data.segmentation.get_segmentation(APP_STATE.values.fov)
+		budneck_img = APP_STATE.data.budneck.get_fov(APP_STATE.values.fov)
 
 		return LineageGuesserBudLum(
 			segmentation=segmentation,
@@ -293,7 +326,7 @@ class GuesserExpSpeedLaunch(GuesserLaunch):
 		super().__init__(parent)
 
 	def guesser(self):
-		segmentation = APP_STATE.data.segmentation
+		segmentation = APP_STATE.data.segmentation.get_segmentation(APP_STATE.values.fov)
 
 		return LineageGuesserExpansionSpeed(
 			segmentation=segmentation,
@@ -304,13 +337,28 @@ class GuesserExpSpeedLaunch(GuesserLaunch):
 			bud_distance_max=self.field('bud_distance_max'),
 		)
 
+class GuesserMLLaunch(GuesserLaunch):
+	def __init__(self, parent: Optional[QWidget] = None) -> None:
+		super().__init__(parent)
+
+	def guesser(self):
+		segmentation = APP_STATE.data.segmentation.get_segmentation(APP_STATE.values.fov)
+
+		return LineageGuesserML(
+			segmentation=segmentation,
+			nn_threshold=self.field('nn_threshold'),
+			num_frames_refractory=self.field('num_frames_refractory'),
+			flexible_nn_threshold=self.field('flexible_fn_threshold'),
+			bud_distance_max=self.field('bud_distance_max'),
+		)
+
 
 class GuesserMinThetaLaunch(GuesserLaunch):
 	def __init__(self, parent: Optional[QWidget] = None) -> None:
 		super().__init__(parent)
 
 	def guesser(self):
-		segmentation = APP_STATE.data.segmentation
+		segmentation = APP_STATE.data.segmentation.get_segmentation(APP_STATE.values.fov)
 
 		return LineageGuesserMinTheta(
 			segmentation=segmentation,
@@ -327,7 +375,7 @@ class GuesserMinDistanceLaunch(GuesserLaunch):
 		super().__init__(parent)
 
 	def guesser(self):
-		segmentation = APP_STATE.data.segmentation
+		segmentation = APP_STATE.data.segmentation.get_segmentation(APP_STATE.values.fov)
 
 		return LineageGuesserMinDistance(
 			segmentation=segmentation,
@@ -364,6 +412,9 @@ class GuesserWizard(QWizard):
 		if which == 'LineageGuesserBudLum':
 			self.addPage(GuesserBudneckParams())
 			self.addPage(GuesserBudneckLaunch())
+		elif which == 'LineageGuesserML':
+			self.addPage(GuesserMLParams())
+			self.addPage(GuesserMLLaunch())
 		elif which == 'LineageGuesserExpansionSpeed':
 			self.addPage(GuesserExpSpeedParams())
 			self.addPage(GuesserExpSpeedLaunch())

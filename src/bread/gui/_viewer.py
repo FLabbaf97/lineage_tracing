@@ -385,9 +385,10 @@ class Canvas(QWidget):
 			return
 		else:
 			self.lineage_graph.setOpacity(1)
-		
+		# get lineage data (we do not support different lineage for different fovs)
 		lineage = APP_STATE.data.current_lineage
-		segmentation = APP_STATE.data.segmentation
+		# get current segmentation for the current fov
+		segmentation = APP_STATE.data.segmentation.get_segmentation(APP_STATE.values.fov)
 
 		if lineage is None or segmentation is None:
 			return
@@ -399,12 +400,13 @@ class Canvas(QWidget):
 		c = np.cos(a)
 		s = np.sin(a)
 		R = np.array(((c, -s), (s, c)))
-		wing = 3  # length of the arrow wings
+		wing = 5  # length of the arrow wings
 		radius = 3  # radius of the disk around the center of mass
 
 		for idt, (parent_id, bud_id) in enumerate(zip(lineage.parent_ids[mask], lineage.bud_ids[mask])):
-			cm_parent = segmentation.cms(APP_STATE.values.fov, APP_STATE.values.frame_index, [parent_id])[0]
-			cm_bud = segmentation.cms(APP_STATE.values.fov, APP_STATE.values.frame_index, [bud_id])[0]
+			# find center of mass of parent and bud
+			cm_parent = segmentation.cms(APP_STATE.values.frame_index, [parent_id])[0]
+			cm_bud = segmentation.cms(APP_STATE.values.frame_index, [bud_id])[0]
 
 			vec = cm_bud - cm_parent
 			length = np.sqrt(vec[0]**2 + vec[1]**2)

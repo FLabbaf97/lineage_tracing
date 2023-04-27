@@ -189,7 +189,7 @@ class EditorTab(QWidget):
 				self.table.blockSignals(signalsBlocked_)  # restore state
 				return False
 
-			if not APP_STATE.data.valid_cellid(content, timeid):
+			if not APP_STATE.data.valid_cellid(cellid=content, timeid=timeid, fov=APP_STATE.values.fov):
 				item.setBackground(self.COLOR_ERR_CELLID)
 				item.setToolTip(f'[ERROR] Cell {content} does not exist at frame {timeid}')
 				self.table.blockSignals(signalsBlocked_)  # restore state
@@ -307,15 +307,18 @@ class Editor(QWidget):
 		new_lineage_budneck = QAction('Guess lineage using budneck', self)
 		new_lineage_budneck.triggered.connect(lambda: self.new_lineage_guesser('LineageGuesserBudLum'))
 		self.menu_new.addAction(new_lineage_budneck)
+		new_lineage_ML = QAction('Guess lineage using ML', self)
+		new_lineage_ML.triggered.connect(lambda: self.new_lineage_guesser('LineageGuesserML'))
+		self.menu_new.addAction(new_lineage_ML)
 		new_lineage_expspeed = QAction('Guess lineage using expansion speed', self)
 		new_lineage_expspeed.triggered.connect(lambda: self.new_lineage_guesser('LineageGuesserExpansionSpeed'))
 		self.menu_new.addAction(new_lineage_expspeed)
-		new_lineage_mintheta = QAction('Guess lineage using min theta', self)
-		new_lineage_mintheta.triggered.connect(lambda: self.new_lineage_guesser('LineageGuesserMinTheta'))
-		self.menu_new.addAction(new_lineage_mintheta)
-		new_lineage_mindist = QAction('Guess lineage using min distance', self)
-		new_lineage_mindist.triggered.connect(lambda: self.new_lineage_guesser('LineageGuesserMinDistance'))
-		self.menu_new.addAction(new_lineage_mindist)
+		# new_lineage_mintheta = QAction('Guess lineage using min theta', self)
+		# new_lineage_mintheta.triggered.connect(lambda: self.new_lineage_guesser('LineageGuesserMinTheta'))
+		# self.menu_new.addAction(new_lineage_mintheta)
+		# new_lineage_mindist = QAction('Guess lineage using min distance', self)
+		# new_lineage_mindist.triggered.connect(lambda: self.new_lineage_guesser('LineageGuesserMinDistance'))
+		# self.menu_new.addAction(new_lineage_mindist)
 		self.menu_new.addSeparator()
 		new_lineage_prefilled_action = QAction('Create pre-filled lineage file', self)
 		new_lineage_prefilled_action.triggered.connect(self.new_lineage_prefilled)
@@ -427,7 +430,7 @@ class Editor(QWidget):
 	
 	@Slot()
 	def new_lineage_guesser(self, which: str):
-		if which in ['LineageGuesserBudLum', 'LineageGuesserExpansionSpeed', 'LineageGuesserMinDistance', 'LineageGuesserMinTheta'] and APP_STATE.data.segmentation is None:
+		if which in ['LineageGuesserBudLum', 'LineageGuesserExpansionSpeed', 'LineageGuesserMinDistance', 'LineageGuesserMinTheta', 'LineageGuesserML'] and APP_STATE.data.segmentation is None:
 			QMessageBox.warning(self, 'bread GUI warning', 'No segmentation loaded.\nCreate an empty lineage file instead, or load a segmentation.')
 			return
 		

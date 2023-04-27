@@ -69,6 +69,21 @@ class Features:
 		"""eccentricity of the cell"""
 		return self._ellipse(cell_id, time_id).ecc
 
+	def cell_maj(self, cell_id: int, time_id: int)-> float:
+		cell_el = self._ellipse(cell_id, time_id)
+		cell_maj = np.array([np.cos(cell_el.angle), np.sin(cell_el.angle)]) * cell_el.r_maj
+		return cell_maj
+
+	def cell_min(self, cell_id: int, time_id: int) -> float:
+		"""Return the minor axis of the cell in the given time frame"""
+		cell_el = self._ellipse(cell_id, time_id)
+		cell_min = np.array([np.cos(cell_el.angle+np.pi/2), np.sin(cell_el.angle+np.pi/2)]) * cell_el.r_min
+		return cell_min
+
+	def pair_budcm_to_budpt(self, time_id, bud_id:int , candidate_id:int) -> np.ndarray:
+		"""Return the vector from the bud center of mass to the bud point"""
+		return self.pair_cmtocm(time_id, candidate_id, bud_id) + self.pair_budpt(time_id, candidate_id, bud_id) 
+
 	def pair_cmtocm(self, time_id: int, cell_id1: int, cell_id2: int) -> np.ndarray:
 		"""vector going from cm2 (center of mass) to cm1, in (x, y) coordinates"""
 		return (self._cm(cell_id1, time_id) - self._cm(cell_id2, time_id))[[1, 0]] * self.scale_length

@@ -1,5 +1,5 @@
 from PySide6.QtCore import QObject, Signal, Slot
-from bread.data import Lineage, Microscopy, Segmentation
+from bread.data import Lineage, Microscopy, Segmentation, SegmentationFile
 from typing import Optional, List
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -35,7 +35,7 @@ class AppState(QObject):
 	@dataclass
 	class AppData:
 		parent: 'AppState' = field(repr=False)
-		segmentation: Optional[Segmentation] = None
+		segmentation: Optional[SegmentationFile] = None
 		microscopy: Optional[Microscopy] = None
 		budneck: Optional[Microscopy] = None
 		nucleus: Optional[Microscopy] = None
@@ -46,14 +46,13 @@ class AppState(QObject):
 		def frames_max(self) -> int:
 			try:
 				max_micro = APP_STATE.data.microscopy.get_frame_count(fov=APP_STATE.values.fov) if APP_STATE.data.microscopy else None
-				max_seg = APP_STATE.data.segmentation.get_frame_count(fov=APP_STATE.values.fov) if APP_STATE.data.segmentation else None
+				max_seg = APP_STATE.data.segmentation[APP_STATE.values.fov].get_frame_count() if APP_STATE.data.segmentation else None
 				max_budneck = APP_STATE.data.budneck.get_frame_count(fov=APP_STATE.values.fov) if APP_STATE.data.budneck else None
 				max_nucleus = APP_STATE.data.nucleus.get_frame_count(fov=APP_STATE.values.fov) if APP_STATE.data.nucleus else None
 				min_value = min(x for x in [max_micro, max_budneck, max_seg, max_nucleus] if x is not None)
 				return min_value
 			except Exception as e:
 				logger.exception("An exception occurred: %s", str(e))
-				# min() arg is an empty sequence
 				return 0
 		
 		@property
@@ -72,13 +71,13 @@ class AppState(QObject):
 
 		@property
 		def frames_homogeneous(self) -> bool:
-			return len(self.segmentation or []) == len(self.microscopy or []) == len(self.nucleus or [])
+			return len(self.segmentation[fov] or []) == len(self.microscopy[fov] or []) == len(self.nucleus[fov] or [])
 
 		def valid_frameid(self, frameid) -> bool:
 			return 0 <= frameid < self.frames_max
 
-		def valid_cellid(self, cellid: int, fov:str, timeid: int) -> bool:
-			return self.segmentation is not None and cellid in self.segmentation.cell_ids(fov, timeid)
+		def valid_cellid(self, fov:str, cellid: int, timeid: int) -> bool:
+			return self.segmentation[fov] is not None and cellid in self.segmentation[fov].cell_ids(timeid)
 		
 		def get_coresponding_channel(self, type):
 			if type == "Microscopy":
@@ -215,11 +214,11 @@ class AppState(QObject):
 		self.update_frame_index.emit(0)
 
 	@Slot(Segmentation)
-	def set_segmentation_data(self, segmentation: Optional[Segmentation]) -> None:
+	def set_segmentation_data(self, segmentation: Optional[SegmentationFile]) -> None:
 		self.data.segmentation = segmentation
 		self.values.frame_index = 0
 		self.values.fov = segmentation.field_of_views[0] if segmentation.field_of_views else "FOV0"
-		self.update_segmentation_data.emit(self.data.segmentation.get_frames(self.values.fov))
+		self.update_segmentation_data.emit(self.data.segmentation[self.values.fov].data)
 		self.update_frames_max.emit(self.data.frames_max)
 		self.update_fov_list.emit(self.data.fov_list)
 		self.update_frame_index.emit(0)

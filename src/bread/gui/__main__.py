@@ -1,7 +1,7 @@
 if __name__ == '__main__':
 	from _gui import App, APP_STATE
 	from PySide6 import QtWidgets
-	from bread.data import Segmentation, Microscopy, Lineage
+	from bread.data import Segmentation, Microscopy, Lineage, SegmentationFile
 
 	app = QtWidgets.QApplication([])
 

@@ -6,7 +6,7 @@ from PySide6.QtCore import QObject, Signal, Slot
 from typing import Optional, List
 from pathlib import Path
 import pyqtgraph as pg
-from bread.data import Lineage, Microscopy, Segmentation
+from bread.data import Lineage, Microscopy, Segmentation, SegmentationFile
 from _state import APP_STATE
 from _utils import lerp
 from _dialogs import FilleChannelMapperDialog, FileTypeDialog
@@ -44,11 +44,11 @@ class OpenFile(QGroupBox):
 		# TODO : proper file opening support in bread.data
 		# something like Segmentation.from_filepath_autodetect
 		if filepath.suffix in ['.h5', '.hd5']:
-			segmentation = Segmentation.from_h5(filepath)
+			segmentation_file = SegmentationFile.from_h5(filepath)
 		else:
 			raise RuntimeError(f'Unsupported extension : {filepath.suffix}')
 
-		APP_STATE.set_segmentation_data(segmentation)
+		APP_STATE.set_segmentation_data(segmentation_file)
 
 	@Slot()
 	def file_open_microscopy(self):
@@ -60,13 +60,16 @@ class OpenFile(QGroupBox):
 		if filepath.suffix in ['.tif', '.tiff']:
 			microscopy = Microscopy.from_tiff(filepath)
 			file_type_dialog = FileTypeDialog(self)
+			file_type = None
 			result = file_type_dialog.exec()
 			if result == file_type_dialog.Accepted:
 				file_type = file_type_dialog.get_file_type()
 				print(f"File type selected: {file_type}")
 			else:
 				print("File type dialog canceled")
-			if(file_type == 'Brightfield/Phase Contrast'):
+			if file_type == None:
+				return
+			elif(file_type == 'Brightfield/Phase Contrast'):
 				APP_STATE.set_microscopy_data(microscopy)
 			elif(file_type == 'Nucleus'):
 				APP_STATE.set_nucleus_data(microscopy)
@@ -322,7 +325,7 @@ class Canvas(QWidget):
 		if APP_STATE.data.segmentation is None:
 			return
 
-		self.img_segmentation.setImage(APP_STATE.data.segmentation.get_frame(APP_STATE.values.fov,APP_STATE.values.frame_index))
+		self.img_segmentation.setImage(APP_STATE.data.segmentation[APP_STATE.values.fov].data[APP_STATE.values.frame_index])
 
 	@Slot()
 	def update_microscopy(self):
@@ -356,8 +359,8 @@ class Canvas(QWidget):
 				textitem.setVisible(APP_STATE.values.show_ids)
 			return
 
-		cellids = APP_STATE.data.segmentation.cell_ids(APP_STATE.values.fov, APP_STATE.values.frame_index)
-		cms = APP_STATE.data.segmentation.cms(APP_STATE.values.fov,APP_STATE.values.frame_index, cell_ids=cellids)
+		cellids = APP_STATE.data.segmentation[APP_STATE.values.fov].cell_ids(APP_STATE.values.frame_index)
+		cms = APP_STATE.data.segmentation[APP_STATE.values.fov].cms(APP_STATE.values.frame_index, cell_ids=cellids)
 
 		# remove unused text items
 		while len(self.text_cellids) > len(cellids):
@@ -430,11 +433,11 @@ class Canvas(QWidget):
 		self.lineage_graph.setData(xy[1], xy[0], connect='pairs')
 
 	@Slot(int, int)
-	def update_centered_cellid(self, fov, timeid, cellid):
+	def update_centered_cellid(self, timeid, cellid):
 		if APP_STATE.data.segmentation is None:
 			return
 
-		center = APP_STATE.data.segmentation.cms(fov, timeid, [cellid])[0]
+		center = APP_STATE.data.segmentation[APP_STATE.values.fov].cms(timeid, [cellid])[0]
 		size = 100
 		rect = (center[1]-size/2, center[0]-size/2, size, size)
 		self.vb.setRange(QtCore.QRectF(*rect))
@@ -450,10 +453,10 @@ class Canvas(QWidget):
 			if APP_STATE.data.segmentation is None:
 				return
 
-			if idx[0] < 0 or idx[1] < 0 or idx[0] >= (APP_STATE.data.segmentation.data[APP_STATE.values.fov]).shape[1] or idx[1] >= (APP_STATE.data.segmentation.data[APP_STATE.values.fov]).shape[2]:
+			if idx[0] < 0 or idx[1] < 0 or idx[0] >= (APP_STATE.data.segmentation[APP_STATE.values.fov].data).shape[1] or idx[1] >= (APP_STATE.data.segmentation[APP_STATE.values.fov].data).shape[2]:
 				return
 
-			clicked_cellid = APP_STATE.data.segmentation.data[APP_STATE.values.fov][APP_STATE.values.frame_index, idx[0], idx[1]]
+			clicked_cellid = APP_STATE.data.segmentation[APP_STATE.values.fov].data[APP_STATE.values.frame_index, idx[0], idx[1]]
 			APP_STATE.set_clicked_cellid(clicked_cellid)
 
 

@@ -256,7 +256,12 @@ class Canvas(QWidget):
 		self.img_microscopy.setCompositionMode(QtGui.QPainter.CompositionMode.CompositionMode_Plus)
 		self.img_budneck.setCompositionMode(QtGui.QPainter.CompositionMode.CompositionMode_Plus)
 		self.img_nucleus.setCompositionMode(QtGui.QPainter.CompositionMode.CompositionMode_Plus)
-		self.img_segmentation_colormap = pg.ColorMap((0, 1), ('#000', '#00F'))
+		
+		# Define a logarithmic scale color map with a black background for the segmentation image
+		max_cell_number = 1000
+		color_list = ['#0000FF', '#00FFFF', '#00FF00', '#FFFF00', '#FFA500', '#FF0000']
+		log_range = np.logspace(-1, np.log10(max_cell_number), len(color_list), base=10.0)
+		self.img_segmentation_colormap = pg.ColorMap(np.concatenate(([0], log_range)), [pg.mkColor('#000000')] + [pg.mkColor(color) for color in color_list])
 		self.img_microscopy_colormap = pg.ColorMap((0, 1), ('#000', '#FFF'))
 		self.img_budneck_colormap = pg.ColorMap((0, 1), ('#000', '#0F0'))
 		self.img_nucleus_colormap = pg.ColorMap((0, 1), ('#000', '#F00'))

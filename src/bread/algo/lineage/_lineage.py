@@ -195,7 +195,7 @@ class LineageGuesser(ABC):
 				contour_parent = self._features._contour(parent_id, time_id)
 				dists[i] = self._features._nearest_points(contour_bud, contour_parent)[-1]
 
-			if any(dists > self.nn_threshold):
+			if any(dists <= self.nn_threshold):
 				# the cell has nearest neighbours
 				candidate_ids = candidate_ids[dists <= self.nn_threshold]
 			else:
@@ -465,6 +465,8 @@ class LineageGuesserML(LineageGuesser):
 	"""
 	num_frames: int = 5
 	bud_distance_max: float = 8
+	num_nn_threshold: int = 4
+	number_of_features: int = 10
 
 	def __post_init__(self):
 		LineageGuesser.__post_init__(self)
@@ -480,7 +482,7 @@ class LineageGuesserML(LineageGuesser):
 		self.model.load_model(self.model_path)
 
 		# set values for model inputes
-		self.number_of_nn = 4
+		self.num_nn_threshold = 4
 		self.number_of_features = 10
 	
 	def _get_ml_features(self, bud_id, candidate_id, time_id, selected_times):
@@ -595,35 +597,63 @@ class LineageGuesserML(LineageGuesser):
 			return candidate_parents[parent_id]
 		except Exception as e:
 			# check if there is only one candidate, if so return it
-			if len(candidate_parent==1):
+			if len(candidate_parents) == 1:
 				return candidate_parents[0]
 			# If the model fails, return -3 which means that there is no guess for this bud
 			else:
 				return -3
 		
+
 	def predict_parent(self, bud_id, batch_features):
+		import itertools
 		import xgboost as xgb
-		import json
 
 		if(self.model is None):
 			raise Exception("No model was loaded")
-		# Get the number of features in the model
-		num_features = self.number_of_nn * self.number_of_features
-		# Prepare the data for prediction
-		X = batch_features #X is the set that is going to be used
-		X = self._flatten_3d_array(X)
-		if X.shape[1] < num_features:
-			# Pad X with -1.0 for any missing features/candidates
-			X_padded = np.pad(X, ((0, 0), (0, num_features - X.shape[1])), mode='constant', constant_values=-1.0)
-		else:
-			X_padded = X
+		
+		if batch_features.shape[1] <= self.num_nn_threshold:
+			# Get the number of features in the model
+			num_features = self.num_nn_threshold * self.number_of_features
+			# Prepare the data for prediction
+			X = batch_features #X is the set that is going to be used
+			X = self._flatten_3d_array(X)
+			if X.shape[1] < num_features:
+				# Pad X with -1.0 for any missing features/candidates
+				X_padded = np.pad(X, ((0, 0), (0, num_features - X.shape[1])), mode='constant', constant_values=-1.0)
+			else:
+				X_padded = X
 
-		dtest = xgb.DMatrix(X_padded)
-
-		# Make predictions using the loaded model
-		preds = self.model.predict(dtest)
-		preds = np.round(preds)
-		return int(preds[0])
+			dtest = xgb.DMatrix(X_padded)
+			# Make predictions using the loaded model
+			preds = self.model.predict(dtest)
+			preds = np.round(preds)
+			return int(preds[0])
+		
+		# in case we have more candidates than the threshold, we need to test all combinations of 4 candidates
+		elif batch_features.shape[1] > self.num_nn_threshold:
+			# test for all combinations of 4 candidates and return the one with that repeats more times
+			combinations = list(itertools.combinations(range(batch_features.shape[1]), 4))
+			max_count = 0
+			max_idx = 0
+			pred_list = []
+			for i, comb in enumerate(combinations):
+				X = batch_features[:, comb]
+				X = self._flatten_3d_array(X)
+				# Pad X with -1.0 for any missing features/candidates
+				num_features = self.num_nn_threshold * self.number_of_features
+				if X.shape[1] < num_features:
+					X_padded = np.pad(X, ((0, 0), (0, num_features - X.shape[1])), mode='constant', constant_values=-1.0)
+				else:
+					X_padded = X
+				dtest = xgb.DMatrix(X_padded)
+				preds = self.model.predict(dtest)
+				pred = comb[int(preds[0])]
+				pred_list.append(pred)
+			
+			from collections import Counter
+			count = Counter(pred_list)
+			most_common = count.most_common(1)
+			return most_common[0][0] 
 
 	def _keep_features(self, matrices, feature_columns = [0,1,2,3]):
 		"""

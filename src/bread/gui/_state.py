@@ -29,7 +29,7 @@ class AppState(QObject):
 	update_clicked_cellid = Signal(int)
 	update_frame_index = Signal(int)
 	update_frames_max = Signal(int)
-	update_centered_cellid = Signal(str, int, int)
+	update_centered_cellid = Signal(int, int)
 	closing = Signal()
 
 	@dataclass
@@ -236,9 +236,9 @@ class AppState(QObject):
 
 	@Slot(int, int)
 	def set_centered_cellid(self, timeid: int, cellid: int) -> None:
-		if not self.data.valid_cellid(cellid, self.values.fov, timeid):
+		if not self.data.valid_cellid(self.values.fov, cellid, timeid):
 			return
 
-		self.update_centered_cellid.emit(self.values.fov, timeid, cellid)
+		self.update_centered_cellid.emit(timeid, cellid)
 
 APP_STATE = AppState()

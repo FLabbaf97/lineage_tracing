@@ -21,6 +21,7 @@ networkx==2.6.3
 tqdm
 matplotlib==3.5.3
 seaborn==0.12.1
+nd2reader
 
 # src/libraries/YeaZ
 munkres

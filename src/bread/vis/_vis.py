@@ -5,9 +5,10 @@ from matplotlib.figure import Figure
 from matplotlib.axes import Axes
 import matplotlib.lines, matplotlib.patches
 import numpy as np
-from bread.data import Segmentation, Microscopy, Features, Ellipse, Contour
+from bread.data import Segmentation, Microscopy, Features, Ellipse, Contour, SegmentationFile
 
-__all__ = ['plot_segmentation', 'plot_visible', 'plot_cellids', 'plot_graph', 'plot_debug_pair', 'plot_debug_cell']
+__all__ = ['plot_segmentation', 'plot_visible', 'plot_cellids', 'plot_graph', 'plot_debug_pair', 'plot_debug_cell' , 'get_center']
+
 
 FigAx = Tuple[Figure, Axes]
 
@@ -19,18 +20,26 @@ def _unwrap_figax(figax: Optional[FigAx] = None) -> FigAx:
 	return fig, ax
 
 
-def plot_cellids(seg: Segmentation, time_id: int, figax: Optional[FigAx] = None, **kwargs) -> FigAx:
+def plot_cellids(seg: Segmentation, time_id: int, figax: Optional[FigAx] = None, cell_list=[],**kwargs) -> FigAx:
 	fig, ax = _unwrap_figax(figax)
 
 	cell_ids = seg.cell_ids(time_id)
 	cms = seg.cms(time_id)
+	if cell_list == []:
+		cell_list = seg.cell_ids(time_id)
 	for cm, cell_id in zip(cms, cell_ids):
-		ax.text(cm[1], cm[0], f'{int(cell_id)}', fontsize=8, ha='center', va='center')
+		if cell_id in cell_list:
+			ax.text(cm[1], cm[0], f'{int(cell_id)}', fontsize=8, ha='center', va='center')
 
 	return fig, ax
 
+def get_center(seg: Segmentation, time_id: int, cell_id: int) -> Tuple[float, float]:
+	cms = seg.cms(time_id)
+	cell_ids = seg.cell_ids(time_id)
+	return cms[cell_ids.index(cell_id)]
 
-def plot_segmentation(seg: Segmentation, time_id: int, figax: Optional[FigAx] = None, cellids: bool = True, **kwargs) -> FigAx:
+
+def plot_segmentation(seg: Segmentation, time_id: int, figax: Optional[FigAx] = None, cellids: bool = True, cell_list=[], **kwargs) -> FigAx:
 	fig, ax = _unwrap_figax(figax)
 	
 	img = seg.data[time_id].astype(float)
@@ -38,18 +47,18 @@ def plot_segmentation(seg: Segmentation, time_id: int, figax: Optional[FigAx] = 
 	ax.imshow(img, cmap='gist_rainbow', **kwargs)
 
 	if cellids:
-		plot_cellids(seg, time_id, (fig, ax))
+		plot_cellids(seg, time_id, (fig, ax), cell_list=cell_list)
 	
 	return fig, ax
 
 
-def plot_visible(mic: Microscopy, time_id: int, figax: Optional[FigAx] = None, **kwargs) -> FigAx:
+def plot_visible(mic: Microscopy, time_id: int, fov: Optional[str]='FOV0', figax: Optional[FigAx] = None, **kwargs) -> FigAx:
 	fig, ax = _unwrap_figax(figax)
 
 	kwargs_ = dict(cmap='binary')
 	kwargs_.update(kwargs)
 
-	ax.imshow(mic.data[time_id], **kwargs_)
+	ax.imshow(mic.get_frame(fov, time_id), **kwargs_)
 
 	return fig, ax
 
@@ -64,6 +73,7 @@ def plot_graph(seg: Segmentation, time_id: int, edges, figax=None):
 		cm2 = cell_id_to_cm[cell_id2]
 		ax.add_artist(matplotlib.lines.Line2D(
 			(cm1[1], cm2[1]), (cm1[0], cm2[0]),
+			
 			color='black', linewidth=1, alpha=0.7
 		))
 		
@@ -128,7 +138,7 @@ def plot_debug_pair(time_id: int, bud_id: int, candidate_id: int, feat: Features
 	budding_point = feat._budding_point(bud_id, candidate_id, time_id)
 	
 	kwargs = deepcopy(kwargs)
-	kwargs['linewidth'] = kwargs.get('linewidth', 0.5)
+	kwargs['linewidth'] = kwargs.get('linewidth', 0.4)
 	kwargs['color'] = kwargs.get('color', 'black')
 
 	ax.arrow(

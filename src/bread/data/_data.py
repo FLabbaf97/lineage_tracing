@@ -453,16 +453,23 @@ class SegmentationFile:
 		file = h5py.File(filepath, "r")
 		data = {}
 		try:
+			
 			# Get the top-level groups in the file
 			groups = list(file.keys())
 			for fov in groups:
-				# Get the frames in the FOV
-				load_frames = list(range(len(file[fov].keys())))
-				keys = [ f'T{n}' for n in load_frames ]
-				imgs = np.zeros((len(keys), *file[fov]['T0'].shape), dtype=int)
-				for i, key in enumerate(keys):
-					imgs[i] = np.array(file[fov][key])
-				data[fov] = Segmentation(data=imgs, fov=fov)
+				if file[fov].keys():
+					# Get the frames in the FOV
+					load_frames = list(range(len(file[fov].keys())))
+					keys = [ f'T{n}' for n in load_frames ]
+					imgs = np.zeros((len(keys), *file[fov]['T0'].shape), dtype=int)
+					for i, key in enumerate(keys):
+						imgs[i] = np.array(file[fov][key])
+					data[fov] = Segmentation(data=imgs, fov=fov)
+				else:
+					imgs = np.zeros((len(keys), *file[fov].shape), dtype=int)
+					for i in range(file[fov].shape[0]):
+						imgs[i] = np.array(file[fov][i])
+					data[fov] = Segmentation(data=imgs, fov=fov)
 		except Exception as e:
 			print("Error reading file: ", e)
 

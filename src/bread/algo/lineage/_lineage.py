@@ -10,7 +10,7 @@ import scipy.ndimage
 from bread.data import Lineage, Microscopy, Segmentation, Ellipse, Contour, BreadException, BreadWarning, Features
 
 __all__ = [
-	'LineageGuesser', 'LineageGuesserBudLum', 'LineageGuesserExpansionSpeed', 'LineageGuesserMinDistance', 'LineageGuesserMinTheta', 'LineageGuesserML',
+	'LineageGuesser', 'LineageGuesserBudLum', 'LineageGuesserExpansionSpeed', 'LineageGuesserMinDistance', 'LineageGuesserMinTheta', 'LineageGuesserML', 'LineageGuesserNearestCell',
 	'LineageException', 'LineageWarning',
 	'NotEnoughFramesException', 'NotEnoughFramesWarning'
 ]
@@ -151,13 +151,15 @@ class LineageGuesser(ABC):
 		for cell_id in pop_cell_ids:
 			self._cellids_refractory.pop(cell_id)
 
-	def _candidate_parents(self, time_id: int, excluded_ids: Optional[List[int]] = None, nearest_neighbours_of: Optional[int] = None) -> np.ndarray:
+	def _candidate_parents(self, time_id: int, threshold_mode: Optional[str]='dist', num_nn: Optional[int]=6, excluded_ids: Optional[List[int]] = None, nearest_neighbours_of: Optional[int] = None) -> np.ndarray:
 		"""Generate a list of candidate parents to consider for budding events.
 
 		Parameters
 		----------
 		time_id : int
 			frame index in the movie.
+		threshold_mode : str, optional
+			Mode to use for the threshold. Can be either 'dist' or 'count'. If 'dist', the threshold is the distance between the bud and the candidate. If 'count', the threshold is the number of nearest neighbours to consider. Default is 'dist'.
 		excluded_ids : list[int], optional
 			Exclude these cell ids from the candidates.
 		nearest_neighbours_of : int or None
@@ -194,19 +196,30 @@ class LineageGuesser(ABC):
 			for i, parent_id in enumerate(candidate_ids):
 				contour_parent = self._features._contour(parent_id, time_id)
 				dists[i] = self._features._nearest_points(contour_bud, contour_parent)[-1]
-
-			if any(dists <= self.nn_threshold):
-				# the cell has nearest neighbours
-				candidate_ids = candidate_ids[dists <= self.nn_threshold]
-			else:
-				# the cell has no nearest neighbours
-				if self.flexible_nn_threshold:
-					# pick the closest cell
-					candidate_ids = candidate_ids[[np.argmin(dists)]]
+			if(threshold_mode == 'dist'):
+				if any(dists <= self.nn_threshold):
+					# the cell has nearest neighbours
+					candidate_ids = candidate_ids[dists <= self.nn_threshold]
 				else:
-					# warn that the cell has no nearest neighbours
-					warnings.warn(BreadWarning(f'cell #{nearest_neighbours_of} does not have nearest neighbours with a distance less than {self.nn_threshold}, and flexible_threshold is {self.flexible_nn_threshold}.'))
-					candidate_ids = np.array(tuple())
+					# the cell has no nearest neighbours
+					if self.flexible_nn_threshold:
+						# pick the closest cell
+						candidate_ids = candidate_ids[[np.argmin(dists)]]
+					else:
+						# warn that the cell has no nearest neighbours
+						warnings.warn(BreadWarning(f'cell #{nearest_neighbours_of} does not have nearest neighbours with a distance less than {self.nn_threshold}, and flexible_threshold is {self.flexible_nn_threshold}.'))
+						candidate_ids = np.array(tuple())
+			elif(threshold_mode == 'count'):
+				# Combine the two lists into tuples
+				data = list(zip(candidate_ids, dists))
+				# Sort the data based on the weight value
+				sorted_data = sorted(data, key=lambda x: x[1])
+				# Extract the first 4 people (or all people if there are less than 4)
+				count = min(num_nn, len(sorted_data))
+				candidate_ids = [sorted_data[i][0] for i in range(count)]	
+			else:
+				raise ValueError(f'Invalid threshold_mode {threshold_mode}.')			
+
 
 		if len(candidate_ids) == 0:
 			# no nearest neighbours
@@ -441,6 +454,34 @@ class LineageGuesserBudLum(_MajorityVoteMixin, LineageGuesser, _BudneckMixin):
 
 
 @dataclass
+class LineageGuesserNearestCell(LineageGuesser):
+	"""
+	Guess lineage relations by looking at the nearest cell to the bud.
+	"""
+	
+	bud_distance_max: float = 8
+	num_nn_threshold: int = 4
+
+	def __post_init__(self):
+		LineageGuesser.__post_init__(self)
+		self._features.bud_distance_max = self.bud_distance_max
+	def guess_parent(self, bud_id, time_id, num_nn=6):
+		candidate_parents = self._candidate_parents(time_id, nearest_neighbours_of=bud_id, num_nn=num_nn, threshold_mode='count')
+        # find the candidate with min distance
+		min_dist = 1000
+		min_c = 0
+		
+		for c in candidate_parents:
+			if c == bud_id:
+				continue
+			dist = self._features.pair_dist(time_id, bud_id, c)
+			if dist < min_dist:
+				min_dist = dist
+				min_c = c
+		return min_c, min_dist
+
+
+@dataclass
 class LineageGuesserML(LineageGuesser):
 	"""Guess lineage relations using a machine learning model with multiple input features that generated using segmentation file.
 	Parameters
@@ -569,6 +610,88 @@ class LineageGuesserML(LineageGuesser):
 		features_full.extend(orientation_bud)
 
 		return features_summary, features_full
+	
+
+	def get_all_possible_features(self, bud_id, candidate_id, time_id, selected_times):
+		"""Return the features to be used by the ML model for a given bud and candidate at a given time.
+		Parameters
+		----------
+		bud_id : int
+			id of the bud in the segmentation
+		candidate_id : int
+			id of the candidate in the segmentation
+		time_id : int
+			frame index in the movie
+		Returns
+		-------
+		summary features : numpy.ndarray (shape=(N,), dtype=float),
+			features to be used by the ML model
+		full features : numpy.ndarray (shape=(M,), dtype=float),
+			full set of features related to the bud and candidate
+		"""
+		budcm_to_budpt_l = np.zeros(self.num_frames, dtype=np.float64)
+		budcm_to_candidatecm_l = np.zeros(self.num_frames, dtype=np.float64)
+		expansion_vector_l = np.zeros(self.num_frames, dtype=np.float64)
+		position_bud = np.zeros(self.num_frames, dtype=np.float64)
+		orientation_bud = np.zeros(self.num_frames, dtype=np.float64)
+		distances = np.zeros(self.num_frames, dtype=np.float64)
+		for i_t, t in enumerate(selected_times):
+			candidatemaj = self._features.cell_maj(candidate_id, t)
+			budmaj = self._features.cell_maj(bud_id, t)
+			budcm_to_budpt = self._features.pair_budcm_to_budpt(t, bud_id, candidate_id)
+			budcm_to_candidatecm = self._features.pair_cmtocm(t, bud_id, candidate_id)
+			candidatecm_to_budpt = budcm_to_budpt - budcm_to_candidatecm
+			expansion_vector = self._features._expansion_vector(bud_id, candidate_id, t)
+			budcm_to_candidatecm_l[i_t] = np.linalg.norm(budcm_to_candidatecm)
+			budcm_to_budpt_l[i_t] = np.linalg.norm(budcm_to_budpt)
+			expansion_vector_l[i_t] = np.linalg.norm(expansion_vector)
+
+			# distance between bud and candidate
+			distances[i_t] = self._features.pair_dist(t, bud_id, candidate_id)
+			# position on candidate where bud appears
+			# both matter, the position (preferential toward major axis) as well as the change in position (no movement allowed)
+			innerproduct = np.dot(candidatemaj, candidatecm_to_budpt)
+			position_bud[i_t] = np.arccos(np.absolute(innerproduct) / np.linalg.norm(candidatemaj) / np.linalg.norm(candidatecm_to_budpt))   
+
+			# orientation of bud with respect to candidate
+			innerproduct = np.dot(budmaj, candidatecm_to_budpt)
+			orientation_bud[i_t] = np.arccos(np.absolute(innerproduct) / np.linalg.norm(budmaj) / np.linalg.norm(candidatecm_to_budpt))
+		
+		features_summary = {}
+
+		# distances
+		features_summary['dist_0'] = distances[0]
+		features_summary['dist_max'] = distances.max()
+		features_summary['dist_min'] = distances.min()
+		features_summary['dist_std'] = distances.std()
+
+		# growth
+		m = np.polyfit(selected_times,budcm_to_candidatecm_l[0:len(selected_times)],1)[0]
+		m_budpt = np.polyfit(selected_times,budcm_to_budpt_l[0:len(selected_times)],1)[0]
+		m_exvec = np.polyfit(selected_times,expansion_vector_l[0:len(selected_times)],1)[0]
+		features_summary['poly_fit_budcm_candidcm'] = m
+		features_summary['poly_fit_budcm_budpt'] = m_budpt
+		features_summary['poly_fit_expansion_vector'] = m_exvec
+		
+		# position and movement around mother
+		features_summary['position_bud_std'] = position_bud.std()
+		features_summary['position_bud_max'] = position_bud.max()
+		features_summary['position_bud_min'] = position_bud.min()
+		features_summary['position_bud_last'] = position_bud[len(selected_times)-1]
+		features_summary['position_bud_first'] = position_bud[0]
+	
+		# orientation of bud
+		features_summary['orientation_bud_std'] = orientation_bud.std()
+		features_summary['orientation_bud_max'] = orientation_bud.max()
+		features_summary['orientation_bud_min'] = orientation_bud.min()
+		features_summary['orientation_bud_last'] = orientation_bud[len(selected_times)-1]
+		features_summary['orientation_bud_first'] = orientation_bud[0]
+		features_summary['orientation_bud_last_minus_first'] = orientation_bud[len(selected_times)-1] - orientation_bud[0]
+		m = np.polyfit(selected_times,orientation_bud[0:len(selected_times)],1)[0]
+		features_summary['plyfit_orientation_bud'] = m
+
+		return features_summary
+
 	
 	def guess_parent(self, bud_id, time_id):
 		candidate_parents = self._candidate_parents(time_id, nearest_neighbours_of=bud_id)

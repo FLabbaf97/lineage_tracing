@@ -47,20 +47,21 @@ new_labels = np.array(new_labels)
   
 #One-hot encoding the labels
 labels = np.array([np.eye(num_classes)[i] for i in new_labels])
+x, y = data_small, labels
+#Split into test set and train set (later we split train set ono validation and train)
+X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.2, shuffle = True)
 
 #Augmenting data by generating all possible permutations of rows of each matrix
 #The factor of augmentaions is going to be num_rows! (in our case, 4! = 24)
 #This boosts the prediction accuracy by few percents
-x, y = generate_all_permutations(data_small, labels)
+X_train, y_train = generate_all_permutations(X_train, y_train)
 
-#Split into test set and train set (later we split train set ono validation and train)
-X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.2, shuffle = True)
 
 # Create a model
-model = create_model((num_classes, num_features), num_classes, dense_layers = [128, 64, 32, 16], conv_layers = use_conv)
+model = create_model((num_classes, num_features), num_classes, dense_layers = [32, 16], conv_layers = use_conv)
 model.summary()
 
-print('Training model on ' + str(len(x)) + ' data points')
+print('Training model on ' + str(len(X_train)) + ' data points')
 
 # Define the learning rate scheduler
 lr_schedule = tf.keras.callbacks.LearningRateScheduler(
@@ -97,8 +98,8 @@ test_loss, test_acc = model.evaluate(X_test, y_test)
 print('Test accuracy:', "%.4f " % test_acc)
 
 #Do a grid scan over batch sizes and learning rates to find the optimal ones
-#batch_sizes = [10, 100]
-#learning_rates = [1e-2, 1e-3]
-## Do a scan through batch sizes and learning rates to find the best combination
-#(highest_acc, best_param) = find_optimal_parameters(batch_sizes, learning_rates, X_train, y_train, n_epochs, num_classes, num_features, use_conv = False, verbose = False)
-#print('Highest classification accuracy on a validation set is ' + f'{highest_acc:.3f}' + ' and is achieved using batch size ' + str(best_param[0]) + ' and learning rate ' + str(best_param[1]) + '.')
+batch_sizes = [10, 100]
+learning_rates = [1e-2, 1e-3]
+# Do a scan through batch sizes and learning rates to find the best combination
+(highest_acc, best_param) = find_optimal_parameters(batch_sizes, learning_rates, X_train, y_train, n_epochs, num_classes, num_features, use_conv = False, verbose = False)
+print('Highest classification accuracy on a validation set is ' + f'{highest_acc:.3f}' + ' and is achieved using batch size ' + str(best_param[0]) + ' and learning rate ' + str(best_param[1]) + '.')

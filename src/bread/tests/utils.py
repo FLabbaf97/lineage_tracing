@@ -127,21 +127,21 @@ def extract_features_for_count_threshold(segmentation_path, num_nn = 6, num_fram
                     bud_id, time_id, candidate, e))
     return candidate_features
 
-def extract_all_features_for_count_threshold(segmentation_path, num_nn = 6, num_frames=4, filling_features=[100,100,0,0,0,-1,1,-1,-1,-1]):
-    candidate_features = pd.DataFrame(columns=['bud_id', 'candid_id', 'time_id', 'feature1', 'feature2',
-                                      'feature3', 'feature4', 'feature5', 'feature6', 'feature7', 'feature8', 'feature9', 'feature10'])
+def extract_all_features_for_count_threshold(segmentation_path, num_nn = 6, num_frames=4, threshold=100):
+    candidate_features = pd.DataFrame()
     segmentation = SegmentationFile.from_h5(
         segmentation_path).get_segmentation('FOV0')
     guesser = LineageGuesserML(
         segmentation=segmentation,
-        nn_threshold=100.0,
+        nn_threshold=threshold,
         flexible_nn_threshold=False,
         num_frames_refractory=0,
         num_frames=num_frames,
-        bud_distance_max=100.0
+        bud_distance_max=threshold
     )
     bud_ids, time_ids = segmentation.find_buds(
     ).bud_ids, segmentation.find_buds().time_ids
+    f_list = []
     for i, (bud_id, time_id) in enumerate(zip(bud_ids, time_ids)):
         frame_range = guesser.segmentation.request_frame_range(
             time_id, time_id + guesser.num_frames)
@@ -153,10 +153,7 @@ def extract_all_features_for_count_threshold(segmentation_path, num_nn = 6, num_
             continue
         if len(frame_range) < guesser.num_frames:
             num_frames_available = len(frame_range)
-            # warnings.warn(NotEnoughFramesWarning(bud_id, time_id, guesser.num_frames, len(frame_range)))
-            # print("Not enough frames for bud {} at time {}. Only {} frames available.".format(
-            #     bud_id, time_id, len(frame_range)))
-            
+
         # check the bud still exists !
         for time_id_ in frame_range:
             if bud_id not in guesser.segmentation.cell_ids(time_id_):
@@ -166,25 +163,18 @@ def extract_all_features_for_count_threshold(segmentation_path, num_nn = 6, num_
             time_id, time_id + num_frames_available)]
         candidate_parents = guesser._candidate_parents(
             time_id, nearest_neighbours_of=bud_id, num_nn=num_nn, threshold_mode='count')
-        # summary_features = np.zeros(
-        #     (len(candidate_parents), guesser.number_of_features), dtype=np.float64)
-        # initialize the features with the filling features
-        num_rows = len(candidate_parents)
-        num_cols = guesser.number_of_features
-        summary_features = np.full((num_rows, num_cols), filling_features, dtype=np.float64)
-
         for c_id, candidate in enumerate(candidate_parents):
             try:
-                features, _ = guesser._get_ml_features(
+                features, f_list = guesser._get_all_possible_features(
                     bud_id, candidate, time_id, selected_times)
-                new_row = {'bud_id': bud_id, 'candid_id': candidate, 'time_id': time_id, 'feature1': features[0], 'feature2': features[1], 'feature3': features[2], 'feature4': features[
-                    3], 'feature5': features[4], 'feature6': features[5], 'feature7': features[6], 'feature8': features[7], 'feature9': features[8], 'feature10': features[9]}
-                new_df = pd.DataFrame(new_row, index=[0])
+                new_row = {'bud_id': bud_id, 'candid_id': candidate, 'time_id': time_id}
+                new_row.update(features)
+                new_df= pd.DataFrame(new_row, index=[0])
                 candidate_features = pd.concat([candidate_features, new_df])
             except Exception as e:
                 print("Error for bud {} at time {} with candidate {}: {}".format(
                     bud_id, time_id, candidate, e))
-    return candidate_features
+    return candidate_features, f_list
 
 
 def find_nearest_neighbors(segmentation_path, args):
@@ -260,7 +250,7 @@ def get_matrix_features(features_all, lineage_gt):
     df1['parent_index_in_candidates'] = parent_index_list
     return df1
 
-def get_custom_matrix_features(features_all, lineage_gt, feature_list, filling_features=[100,100,0,0,0,-1,1,-1,-1,-1,0,0]):
+def get_custom_matrix_features(features_all, lineage_gt, feature_list, filling_features=[0 for i in range(100)]):
     # Generate np array of feature sets for each bud
     df1 = lineage_gt.copy()
     # remove the rows with parent_GT = -1 (no parent) and the rows with candid_GT = -2 (disappearing buds)
@@ -278,9 +268,6 @@ def get_custom_matrix_features(features_all, lineage_gt, feature_list, filling_f
             candidates = np.pad(
                 candidates, ((0, 4 - candidates.shape[0])), mode='constant', constant_values=-3)
         features = bud_data[feature_list].to_numpy()
-        # if features.shape[0] < 4:
-        #     features = np.pad(features, ((
-        #         0, 4 - features.shape[0]), (0, 0)), mode='constant', constant_values=-1)
         if features.shape[0] < 4:
             n_rows = 4 - features.shape[0]
             rows_to_add = np.array([filling_features for i in range(n_rows)])
@@ -294,14 +281,8 @@ def get_custom_matrix_features(features_all, lineage_gt, feature_list, filling_f
             features = features[sorted_indices[:k]]
             candidates = candidates[sorted_indices[:k]]
 
-        # parent = int(df1.loc[(df1['bud_id'] == bud) & (
-        #     df1['colony'] == colony), 'parent_GT'])
         parent = int(df1.loc[(df1['bud_id'] == bud) & (df1['colony'] == colony), 'parent_GT'].iloc[0])
-        # print(bud, colony, parent)
-        # print(candidates)
         if(parent not in candidates):
-            # print('parent not in candidates', bud, colony, candidates, parent)
-            # remove this from the df
             df1.drop(df1.loc[(df1['bud_id'] == bud) & (df1.colony == colony)].index,
                      inplace=True)
             continue

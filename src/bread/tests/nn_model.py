@@ -8,6 +8,7 @@ import torch.optim as optim
 import torch.nn as nn
 from torch.nn import functional as F
 from torch.utils.data import Dataset, DataLoader
+import torch.optim.lr_scheduler as lr_scheduler
 import torch
 from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import accuracy_score
@@ -53,18 +54,23 @@ class LineageNN(nn.Module):
         return x
 
 
-def train_nn(train_df, eval_df, save_path='bst_nn.pth', config={},):
+def train_nn(train_df, eval_df, save_path='bst_nn.pth', config={},seed=42):
+    print('yes. I am reloaded')
     if config == {}:
         config = {'epoch_n': 100, 'patience': 10, 'save_path': 'bst_nn.pth',
-                  'augment': True, 'batch_size': 16, 'lr': 0.001, 'layers': [40, 32, 5]}
+                  'augment': True, 'batch_size': 16, 'lr': 0.001, 'layers': [40, 32, 5],}
     # Initialize wandb
     wandb.init(project="lineage_tracing", config=config)
+    
     # initialize neural network
+    # manualy set the seed to enable reproducibility
+    torch.manual_seed(seed)
     net = LineageNN(layers=config['layers'])
 
     # define your loss function and optimizer
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(net.parameters(), lr=config['lr'])
+    scheduler = lr_scheduler.LinearLR(optimizer, start_factor=1, end_factor=0.01, total_iters=200)
 
     train_bud_dataset = BudDataset(train_df, augment=config['augment'])
     train_bud_dataloader = DataLoader(
@@ -100,8 +106,8 @@ def train_nn(train_df, eval_df, save_path='bst_nn.pth', config={},):
             # backward pass and optimize
             loss.backward()
             optimizer.step()
-
             running_loss += loss.item()
+            scheduler.step()
         train_accuracy = accuracy_score(labels_all, predicted_all)
         # eval loop
         predicted_all = []
@@ -125,11 +131,10 @@ def train_nn(train_df, eval_df, save_path='bst_nn.pth', config={},):
         else:
             patient += 1
         if(patient > config['patience']):
-            # print('early stopping at ', epoch)
+            print('early stopping at ', epoch , 'LR: ', optimizer.param_groups[0]['lr'])
             break
-            # print('Epoch' , i, ' loss: ', running_loss / len(bud_dataloader))
         wandb_log = {'epoch': epoch, 'patience': patient, 'eval_accuracy': eval_accuracy,
-                     'train_accuracy': train_accuracy, 'best_accuracy': best_accuracy}
+                     'train_accuracy': train_accuracy, 'best_accuracy': best_accuracy, 'lr': optimizer.param_groups[0]['lr']    }
         wandb.log(wandb_log)
 
     # print('patient', patient)
@@ -155,7 +160,7 @@ def test_nn(model, test_df):
     return test_df, accuracy
 
 
-def cv_nn(df, config={}):
+def cv_nn(df, config={}, seed=42):
     skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
     X = df['features'].to_numpy()
     y = df['parent_index_in_candidates'].to_numpy()
@@ -171,7 +176,7 @@ def cv_nn(df, config={}):
         print('config: ', config)
         train_df = df.iloc[train_index]
         test_df = df.iloc[test_index]
-        net, accuracy = train_nn(train_df, test_df, config=config)
+        net, accuracy = train_nn(train_df, test_df, config=config, seed=seed)
         accuracies.append(accuracy)
         models.append(net)
     

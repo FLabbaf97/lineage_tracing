@@ -137,6 +137,11 @@ class Features:
 		# WARNING : CM is in (y, x) coordinates, and budding_point in (x, y) coordinates
 		return (self._budding_point(bud_id, candidate_id, time_id) - self._cm(candidate_id, time_id)[[1, 0]]) * self.scale_length
 
+	def budcm_budpt(self, time_id: int, bud_id: int, candidate_id: int) -> np.ndarray:
+		"""estimated budding point of the bud relative to the parent's center of mass"""
+		# WARNING : CM is in (y, x) coordinates, and budding_point in (x, y) coordinates
+		return (self._budding_point(bud_id, candidate_id, time_id) - self._cm(bud_id, time_id)[[1, 0]]) * self.scale_length
+
 	def pair_expspeed(self, time_id: int, bud_id: int, candidate_id: int) -> float:
 		"""expansion speed of the bud with respect to the parent, estimated on a few frames after given time"""
 		with warnings.catch_warnings():

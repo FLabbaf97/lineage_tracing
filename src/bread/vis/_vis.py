@@ -7,7 +7,7 @@ import matplotlib.lines, matplotlib.patches
 import numpy as np
 from bread.data import Segmentation, Microscopy, Features, Ellipse, Contour, SegmentationFile
 
-__all__ = ['plot_segmentation', 'plot_visible', 'plot_cellids', 'plot_graph', 'plot_debug_pair', 'plot_debug_cell' , 'get_center']
+__all__ = ['plot_segmentation', 'plot_visible', 'plot_cellids', 'plot_graph', 'plot_debug_pair', 'plot_debug_cell' , 'get_center', 'plot_expansion_vector', 'plot_position', 'plot_orientation']
 
 
 FigAx = Tuple[Figure, Axes]
@@ -129,6 +129,51 @@ def plot_debug_cell(time_id: int, cell_id: int, feat: Features, figax: Optional[
 
 	return fig, ax
 
+def plot_expansion_vector(time_id: int, bud_id: int, candidate_id: int, feat: Features, figax: Optional[FigAx] = None, **kwargs) -> FigAx:
+	fig, ax = _unwrap_figax(figax)
+
+	cm_bud, cm_candidate = feat._cm(bud_id, time_id)[[1,0]], feat._cm(candidate_id, time_id)[[1,0]]
+	contour_bud, contour_candidate = feat._contour(bud_id, time_id), feat._contour(candidate_id, time_id)
+	budding_point = feat._budding_point(bud_id, candidate_id, time_id)
+	
+	kwargs = deepcopy(kwargs)
+	kwargs['linewidth'] = kwargs.get('linewidth', 0.4)
+	kwargs['color'] = 'black'
+
+	# plot expansion vector
+	ax.arrow(
+		*budding_point, *feat._expansion_vector(bud_id, candidate_id, time_id),
+		length_includes_head=True, head_width=1,
+		**kwargs
+	)
+
+	kwargs1 = deepcopy(kwargs)
+	kwargs1['linewidth'] = kwargs.get('linewidth', 0.4)
+	kwargs1['color'] = 'purple'
+
+	# plot bud_cm to budding point
+	ax.arrow(
+		*cm_bud, *feat.budcm_budpt(time_id, bud_id, candidate_id),
+		length_includes_head=True, head_width=1,
+		**kwargs1
+	)
+	kwargs2 = deepcopy(kwargs)
+	kwargs2['linewidth'] = kwargs.get('linewidth', 0.4)
+	kwargs2['color'] = 'brown'
+
+	# plot bud_cm to candidate_cm
+	ax.arrow(
+		*cm_candidate, *feat.pair_cmtocm(time_id, bud_id, candidate_id),
+		length_includes_head=True, head_width=1,
+		**kwargs2
+	)
+
+
+	ax.plot(*budding_point, marker='*', **kwargs)
+	ax.plot(*feat._farthest_point_on_contour(budding_point, contour_bud), marker='x', **kwargs)
+
+	return fig, ax
+
 
 def plot_debug_pair(time_id: int, bud_id: int, candidate_id: int, feat: Features, figax: Optional[FigAx] = None, **kwargs) -> FigAx:
 	fig, ax = _unwrap_figax(figax)
@@ -156,4 +201,52 @@ def plot_debug_pair(time_id: int, bud_id: int, candidate_id: int, feat: Features
 	ax.plot(*budding_point, marker='*', **kwargs)
 	ax.plot(*feat._farthest_point_on_contour(budding_point, contour_bud), marker='x', **kwargs)
 
+	return fig, ax
+
+def plot_position(time_id: int, bud_id: int, candidate_id: int, feat: Features, figax: Optional[FigAx] = None, **kwargs) -> FigAx:
+	fig, ax = _unwrap_figax(figax)
+
+	cm_bud, cm_candidate = feat._cm(bud_id, time_id)[[1,0]], feat._cm(candidate_id, time_id)[[1,0]]
+	contour_bud, contour_candidate = feat._contour(bud_id, time_id), feat._contour(candidate_id, time_id)
+	budding_point = feat._budding_point(bud_id, candidate_id, time_id)
+	
+	kwargs = deepcopy(kwargs)
+	kwargs['linewidth'] = kwargs.get('linewidth', 0.4)
+	kwargs['color'] = kwargs.get('color', 'black')
+
+	ax.arrow(
+		*cm_candidate, *feat.pair_budpt(time_id, bud_id, candidate_id),
+		length_includes_head=True, head_width=1,
+		**kwargs
+	)
+
+	ax.plot(*budding_point, marker='*', **kwargs)
+	kwargs = deepcopy(kwargs)
+	kwargs['linewidth'] = kwargs.get('linewidth', 0.6)
+	kwargs['color'] = 'black'
+	ax.plot(*cm_candidate, marker='o', **kwargs)
+	return fig, ax
+
+def plot_orientation(time_id: int, bud_id: int, candidate_id: int, feat: Features, figax: Optional[FigAx] = None, **kwargs) -> FigAx:
+	fig, ax = _unwrap_figax(figax)
+
+	cm_bud, cm_candidate = feat._cm(bud_id, time_id)[[1,0]], feat._cm(candidate_id, time_id)[[1,0]]
+	contour_bud, contour_candidate = feat._contour(bud_id, time_id), feat._contour(candidate_id, time_id)
+	budding_point = feat._budding_point(bud_id, candidate_id, time_id)
+	
+	kwargs = deepcopy(kwargs)
+	kwargs['linewidth'] = kwargs.get('linewidth', 0.4)
+	kwargs['color'] = kwargs.get('color', 'black')
+
+	ax.arrow(
+		*cm_candidate, *feat.pair_budpt(time_id, bud_id, candidate_id),
+		length_includes_head=True, head_width=1,
+		**kwargs
+	)
+
+	ax.plot(*cm_bud, marker='*', **kwargs)
+	kwargs = deepcopy(kwargs)
+	kwargs['linewidth'] = kwargs.get('linewidth', 0.6)
+	kwargs['color'] = 'black'
+	ax.plot(*budding_point, marker='o', **kwargs)
 	return fig, ax

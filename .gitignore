@@ -51,12 +51,23 @@ docs/_build/
 
 # data
 src/bread/tests/data/
+data/
 
 # wandb
 src/bread/tests/wandb/
+src/bread/evaluations/wandb/
 
 # png files in tests
 src/bread/tests/*/*.png
 src/bread/tests/*/*/*.png
 src/bread/tests/*.pth
 src/bread/tests/*.csv
+
+# png files and charts in evaluations
+src/bread/evaluations/*/*.png
+src/bread/evaluations/*/*/*.png
+src/bread/evaluations/*.pth
+src/bread/evaluations/*.csv
+src/bread/evaluations/*/*.html
+src/bread/evaluations/*/*/*.html
+src/bread/evaluations/*.html

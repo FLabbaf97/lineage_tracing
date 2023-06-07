@@ -45,5 +45,6 @@ def accuracy(lineage_truth: Lineage, lineage_pred: Lineage, strict: bool = True)
 	mask_exclude = parent_ids_truth == Lineage.SpecialParentIDs.PARENT_OF_ROOT.value
 	if not strict:
 		mask_exclude |= parent_ids_pred == Lineage.SpecialParentIDs.NO_GUESS.value
+		mask_exclude |= parent_ids_truth == Lineage.SpecialParentIDs.NO_GUESS.value
 	score = np.mean(~(parent_ids_pred[~mask_exclude] - parent_ids_truth[~mask_exclude]).astype(bool))
 	return score

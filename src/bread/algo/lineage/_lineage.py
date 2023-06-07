@@ -2,15 +2,23 @@ from abc import ABC, abstractmethod
 from typing import Callable, Optional, List, Tuple
 from dataclasses import dataclass, field
 import warnings
+import os
 import numpy as np
 import scipy.signal
 import scipy.spatial.distance
 import scipy.ndimage
+from collections import Counter
+import itertools
+
+# neural network
+import torch.nn as nn
+from torch.nn import functional as F
+import torch
 
 from bread.data import Lineage, Microscopy, Segmentation, Ellipse, Contour, BreadException, BreadWarning, Features
-
 __all__ = [
-	'LineageGuesser', 'LineageGuesserBudLum', 'LineageGuesserExpansionSpeed', 'LineageGuesserMinDistance', 'LineageGuesserMinTheta', 'LineageGuesserML', 'LineageGuesserNearestCell',
+	'LineageGuesser', 'LineageGuesserBudLum', 'LineageGuesserExpansionSpeed', 'LineageGuesserMinDistance', 'LineageGuesserMinTheta',
+	'LineageGuesserNN', 'LineageGuesserNearestCell', 'LineageGuesserML',
 	'LineageException', 'LineageWarning',
 	'NotEnoughFramesException', 'NotEnoughFramesWarning'
 ]
@@ -36,7 +44,7 @@ class LineageGuesser(ABC):
 	Parameters
 	----------
 	seg : Segmentation
-	nn_threshold : float, optional
+	dist_threshold : float, optional
 		Cell masks separated by less than this threshold are considered neighbours. by default 8.0.
 	flexible_threshold : bool, optional
 		If no nearest neighbours are found within the given threshold, try to find the closest one, by default False.
@@ -54,7 +62,7 @@ class LineageGuesser(ABC):
 	"""
 
 	segmentation: Segmentation
-	nn_threshold: float = 8
+	dist_threshold: float = 8
 	flexible_nn_threshold: bool = False
 	num_frames_refractory: int = 0
 	scale_length: float = 1  # [length unit]/px
@@ -75,7 +83,8 @@ class LineageGuesser(ABC):
 		self._features = Features(
 			segmentation=self.segmentation,
 			scale_length=self.scale_length, scale_time=self.scale_time,
-			nn_threshold=self.nn_threshold
+			nn_threshold=self.dist_threshold,
+			bud_distance_max=self.dist_threshold
 		)
 
 	@abstractmethod
@@ -197,9 +206,9 @@ class LineageGuesser(ABC):
 				contour_parent = self._features._contour(parent_id, time_id)
 				dists[i] = self._features._nearest_points(contour_bud, contour_parent)[-1]
 			if(threshold_mode == 'dist'):
-				if any(dists <= self.nn_threshold):
+				if any(dists <= self.dist_threshold):
 					# the cell has nearest neighbours
-					candidate_ids = candidate_ids[dists <= self.nn_threshold]
+					candidate_ids = candidate_ids[dists <= self.dist_threshold]
 				else:
 					# the cell has no nearest neighbours
 					if self.flexible_nn_threshold:
@@ -207,7 +216,7 @@ class LineageGuesser(ABC):
 						candidate_ids = candidate_ids[[np.argmin(dists)]]
 					else:
 						# warn that the cell has no nearest neighbours
-						warnings.warn(BreadWarning(f'cell #{nearest_neighbours_of} does not have nearest neighbours with a distance less than {self.nn_threshold}, and flexible_threshold is {self.flexible_nn_threshold}.'))
+						warnings.warn(BreadWarning(f'cell #{nearest_neighbours_of} does not have nearest neighbours with a distance less than {self.dist_threshold}, and flexible_threshold is {self.flexible_nn_threshold}.'))
 						candidate_ids = np.array(tuple())
 			elif(threshold_mode == 'count'):
 				# Combine the two lists into tuples
@@ -320,7 +329,7 @@ class LineageGuesserBudLum(_MajorityVoteMixin, LineageGuesser, _BudneckMixin):
 	----------
 	segmentation : Segmentation
 	budneck_img : Microscopy
-	nn_threshold : float, optional
+	dist_threshold : float, optional
 		Cell masks separated by less than this threshold are considered neighbors, by default 8.0.
 	flexible_nn_threshold : bool, optional
 		If no nearest neighbours are found within the given threshold, try to find the closest one, by default False.
@@ -487,7 +496,7 @@ class LineageGuesserML(LineageGuesser):
 	Parameters
 	----------
 	segmentation : Segmentation
-	nn_threshold : float, optional
+	dist_threshold : float, optional
 		cell masks separated by less than this threshold are considered neighbors, by default 8.0.
 	flexible_nn_threshold : bool, optional
 		If no nearest neighbours are found within the given threshold, try to find the closest one, by default False.
@@ -504,7 +513,7 @@ class LineageGuesserML(LineageGuesser):
 		Maximal distance (in pixels) between points on the parent and bud contours to be considered as part of the "budding interface".
 		by default 7.
 	"""
-	num_frames: int = 5
+	num_frames: int = 4
 	bud_distance_max: float = 8
 	num_nn_threshold: int = 4
 	number_of_features: int = 10
@@ -612,7 +621,7 @@ class LineageGuesserML(LineageGuesser):
 		return features_summary, features_full
 	
 
-	def get_all_possible_features(self, bud_id, candidate_id, time_id, selected_times):
+	def _get_all_possible_features(self, bud_id, candidate_id, time_id, selected_times):
 		"""Return the features to be used by the ML model for a given bud and candidate at a given time.
 		Parameters
 		----------
@@ -658,13 +667,13 @@ class LineageGuesserML(LineageGuesser):
 			orientation_bud[i_t] = np.arccos(np.absolute(innerproduct) / np.linalg.norm(budmaj) / np.linalg.norm(candidatecm_to_budpt))
 		
 		features_summary = {}
-
+		feature_list = []
 		# distances
 		features_summary['dist_0'] = distances[0]
 		features_summary['dist_max'] = distances.max()
 		features_summary['dist_min'] = distances.min()
 		features_summary['dist_std'] = distances.std()
-
+		feature_list.extend(['dist_0','dist_max','dist_min','dist_std'])
 		# growth
 		m = np.polyfit(selected_times,budcm_to_candidatecm_l[0:len(selected_times)],1)[0]
 		m_budpt = np.polyfit(selected_times,budcm_to_budpt_l[0:len(selected_times)],1)[0]
@@ -672,25 +681,26 @@ class LineageGuesserML(LineageGuesser):
 		features_summary['poly_fit_budcm_candidcm'] = m
 		features_summary['poly_fit_budcm_budpt'] = m_budpt
 		features_summary['poly_fit_expansion_vector'] = m_exvec
-		
+		feature_list.extend(['poly_fit_budcm_candidcm','poly_fit_budcm_budpt','poly_fit_expansion_vector'])
 		# position and movement around mother
 		features_summary['position_bud_std'] = position_bud.std()
 		features_summary['position_bud_max'] = position_bud.max()
 		features_summary['position_bud_min'] = position_bud.min()
 		features_summary['position_bud_last'] = position_bud[len(selected_times)-1]
 		features_summary['position_bud_first'] = position_bud[0]
-	
+		feature_list.extend(['position_bud_std','position_bud_max','position_bud_min','position_bud_last','position_bud_first'])
 		# orientation of bud
 		features_summary['orientation_bud_std'] = orientation_bud.std()
 		features_summary['orientation_bud_max'] = orientation_bud.max()
 		features_summary['orientation_bud_min'] = orientation_bud.min()
 		features_summary['orientation_bud_last'] = orientation_bud[len(selected_times)-1]
 		features_summary['orientation_bud_first'] = orientation_bud[0]
-		features_summary['orientation_bud_last_minus_first'] = orientation_bud[len(selected_times)-1] - orientation_bud[0]
+		features_summary['orientation_bud_last_minus_first'] = np.abs(orientation_bud[len(selected_times)-1] - orientation_bud[0])
 		m = np.polyfit(selected_times,orientation_bud[0:len(selected_times)],1)[0]
 		features_summary['plyfit_orientation_bud'] = m
-
-		return features_summary
+		feature_list.extend(['orientation_bud_std','orientation_bud_max','orientation_bud_min','orientation_bud_last','orientation_bud_first','orientation_bud_last_minus_first','plyfit_orientation_bud'])
+		
+		return features_summary, feature_list
 
 	
 	def guess_parent(self, bud_id, time_id):
@@ -795,7 +805,247 @@ class LineageGuesserML(LineageGuesser):
 		new_shape = (shape[0], np.prod(shape[1:]))
 		return arr.reshape(new_shape)
 
+class LineageNN(nn.Module):
+    def __init__(self, layers):
+        super(LineageNN, self).__init__()
+        self.layers = nn.ModuleList()  # create an empty nn.ModuleList
+        for i in range(len(layers)-1):
+            self.layers.append(nn.Linear(layers[i], layers[i+1]))
+
+    def forward(self, x):
+        mask = (x != -100).float()
+        x = x * mask  # apply the mask to zero out invalid values
+        for layer in self.layers[:-1]:
+            x = F.relu(layer(x))
+        x = self.layers[-1](x)
+        return x
+
+@dataclass
+class LineageGuesserNN(LineageGuesser):
+	"""Guess lineage relations using a neural network model with multiple input features that generated using segmentation file.
+	Parameters
+	----------
+	segmentation : Segmentation
+	dist_threshold : float, optional
+		cell masks separated by less than this threshold are considered neighbors, by default 10.
+	num_frames_refractory : int, optional
+		After a parent cell has budded, exclude it from the parent pool in the next frames.
+		It is recommended to set it to a low estimate, as high values will cause mistakes to propagate in time.
+		A value of 0 corresponds to no refractory period.
+		by default 0.
+	num_frames : int, optional
+		How many frames to consider to compute expansion velocity.
+		At least 2 frames should be considered. by default 4.
+	num_nn_threshold : int, optional
+		How many nearest neighbors to consider for each bud. by default 4.
+	"""
+	num_frames: int = 8
+	num_nn_threshold: int = 4
+	dist_threshold: float = 8.0
+	saved_model: str = None
+
+	def __post_init__(self):
+		LineageGuesser.__post_init__(self)
+		assert self.num_frames >= 2, f'not enough consecutive frames considered for analysis, got {self.num_frames}.'
+		self._features.budding_time = self.num_frames
+		self._features.dist_threshold = self.dist_threshold
+
+		# Load the saved model
+		# TODO: fix hard coded layers
+		layers = [64,64,5]
+		self.model = LineageNN(layers = layers)
+		current_dir = os.path.dirname(os.path.abspath(__file__))
+		if self.saved_model is None:
+			print("No model was provided, using the default model")
+			self.saved_model = os.path.join(current_dir, 'saved_models/best_model_thresh8_frame_num8_normalized_False.pth')
+		self.model.load_state_dict(torch.load(self.saved_model))
+		self.features_len = int(layers[0]/4)
+
+	def _get_features(self, bud_id, candidate_id, time_id, selected_times):
+		"""Return the features to be used by the  model for a given bud and candidate at a given time.
+		Parameters
+		----------
+		bud_id : int
+			id of the bud in the segmentation
+		candidate_id : int
+			id of the candidate in the segmentation
+		time_id : int
+			frame index in the movie
+		Returns
+		-------
+		features : dict (str:float),
+			features to be used by the ML model
+		"""
+		budcm_to_budpt_l = np.zeros(self.num_frames, dtype=np.float64)
+		budcm_to_candidatecm_l = np.zeros(self.num_frames, dtype=np.float64)
+		expansion_vector_l = np.zeros(self.num_frames, dtype=np.float64)
+		position_bud = np.zeros(self.num_frames, dtype=np.float64)
+		orientation_bud = np.zeros(self.num_frames, dtype=np.float64)
+		distances = np.zeros(self.num_frames, dtype=np.float64)
+		for i_t, t in enumerate(selected_times):
+			candidatemaj = self._features.cell_maj(candidate_id, t)
+			budmaj = self._features.cell_maj(bud_id, t)
+			budcm_to_budpt = self._features.pair_budcm_to_budpt(t, bud_id, candidate_id)
+			budcm_to_candidatecm = self._features.pair_cmtocm(t, bud_id, candidate_id)
+			candidatecm_to_budpt = budcm_to_budpt - budcm_to_candidatecm
+			expansion_vector = self._features._expansion_vector(bud_id, candidate_id, t)
+			budcm_to_candidatecm_l[i_t] = np.linalg.norm(budcm_to_candidatecm)
+			budcm_to_budpt_l[i_t] = np.linalg.norm(budcm_to_budpt)
+			expansion_vector_l[i_t] = np.linalg.norm(expansion_vector)
+
+			# distance between bud and candidate
+			distances[i_t] = self._features.pair_dist(t, bud_id, candidate_id)
+			# position on candidate where bud appears
+			# both matter, the position (preferential toward major axis) as well as the change in position (no movement allowed)
+			innerproduct = np.dot(candidatemaj, candidatecm_to_budpt)
+			position_bud[i_t] = np.arccos(np.absolute(innerproduct) / np.linalg.norm(candidatemaj) / np.linalg.norm(candidatecm_to_budpt))   
+
+			# orientation of bud with respect to candidate
+			innerproduct = np.dot(budmaj, candidatecm_to_budpt)
+			orientation_bud[i_t] = np.arccos(np.absolute(innerproduct) / np.linalg.norm(budmaj) / np.linalg.norm(candidatecm_to_budpt))
 		
+		features_summary = {}
+		feature_list = []
+		# distances
+		features_summary['dist_0'] = distances[0]
+		features_summary['dist_max'] = distances.max()
+		features_summary['dist_min'] = distances.min()
+		features_summary['dist_std'] = distances.std()
+		features_summary['dist_max_min'] = distances.max() - distances.min()
+		feature_list.extend(['dist_0','dist_max','dist_min','dist_std', 'dist_max_min'])
+		# growth
+		m = np.polyfit(selected_times,budcm_to_candidatecm_l[0:len(selected_times)],1)[0]
+		m_budpt = np.polyfit(selected_times,budcm_to_budpt_l[0:len(selected_times)],1)[0]
+		m_exvec = np.polyfit(selected_times,expansion_vector_l[0:len(selected_times)],1)[0]
+		features_summary['poly_fit_budcm_candidcm'] = m
+		features_summary['poly_fit_budcm_budpt'] = m_budpt
+		features_summary['poly_fit_expansion_vector'] = m_exvec
+		feature_list.extend(['poly_fit_budcm_candidcm','poly_fit_budcm_budpt','poly_fit_expansion_vector'])
+		# position and movement around mother
+		features_summary['position_bud_std'] = position_bud.std()
+		features_summary['position_bud_max'] = position_bud.max()
+		features_summary['position_bud_min'] = position_bud.min()
+		features_summary['position_bud_last'] = position_bud[len(selected_times)-1]
+		features_summary['position_bud_first'] = position_bud[0]
+		features_summary['position_bud_last_minus_first'] = np.abs(position_bud[len(selected_times)-1] - position_bud[0])
+		feature_list.extend(['position_bud_std','position_bud_max','position_bud_min','position_bud_last','position_bud_first', 'position_bud_last_minus_first'])
+		# orientation of bud
+		features_summary['orientation_bud_std'] = orientation_bud.std()
+		features_summary['orientation_bud_max'] = orientation_bud.max()
+		features_summary['orientation_bud_min'] = orientation_bud.min()
+		features_summary['orientation_bud_last'] = orientation_bud[len(selected_times)-1]
+		features_summary['orientation_bud_first'] = orientation_bud[0]
+		features_summary['orientation_bud_last_minus_first'] = np.abs(orientation_bud[len(selected_times)-1] - orientation_bud[0])
+		m = np.polyfit(selected_times,orientation_bud[0:len(selected_times)],1)[0]
+		features_summary['plyfit_orientation_bud'] = m
+		feature_list.extend(['orientation_bud_std','orientation_bud_max','orientation_bud_min','orientation_bud_last','orientation_bud_first','orientation_bud_last_minus_first','plyfit_orientation_bud'])
+		
+		return features_summary, feature_list
+
+	def guess_parent(self, bud_id, time_id):
+		candidate_parents = self._candidate_parents(time_id, nearest_neighbours_of=bud_id)
+		frame_range = self.segmentation.request_frame_range(time_id, time_id + self.num_frames)
+		num_frames_available = self.num_frames
+		if len(frame_range) < 2:
+			raise NotEnoughFramesException(bud_id, time_id, self.num_frames, len(frame_range))
+		if len(frame_range) < self.num_frames:
+			num_frames_available = len(frame_range)
+			warnings.warn(NotEnoughFramesWarning(bud_id, time_id, self.num_frames, len(frame_range)))
+
+		# check the bud still exists !
+		for time_id_ in frame_range:
+			if bud_id not in self.segmentation.cell_ids(time_id_):
+				raise LineageGuesserExpansionSpeed.BudVanishedException(bud_id, time_id_)
+		selected_times = [i for i in range(time_id, time_id + num_frames_available)]
+
+		# get features for all candidates
+		selected_keys = ['dist_0','dist_std','poly_fit_budcm_budpt','poly_fit_expansion_vector','position_bud_std','position_bud_max','position_bud_min','position_bud_last','position_bud_first','orientation_bud_std','orientation_bud_max','orientation_bud_min','orientation_bud_last','orientation_bud_first','orientation_bud_last_minus_first','plyfit_orientation_bud']
+		features = np.zeros((len(candidate_parents), self.features_len), dtype=np.float64)
+		for c_id , candidate in enumerate(candidate_parents):
+			f, f_list = self._get_features(bud_id, candidate, time_id, selected_times)
+			feature_dict = {k: v for k, v in f.items() if k in selected_keys}
+			features[c_id] = list(feature_dict.values())
+		
+		# Find the id of parent with the highest probability using the ml model
+		predicted_index = self.predict_parent(bud_id, features.reshape((1, ) + features.shape), number_of_candidates = len(candidate_parents))
+		if (predicted_index>len(candidate_parents)-1):
+			if (len(candidate_parents) == 1):
+				parent = candidate_parents[0] #in case that prediction was very off, return the only candidate
+			else:
+				parent = Lineage.SpecialParentIDs.NO_GUESS.value # no guess! This shouldn't happen very often
+		else:
+			parent = candidate_parents[predicted_index]
+		return parent
+		
+	def predict_parent(self, bud_id, batch_features, number_of_candidates = 4):
+
+		if(self.model is None):
+			raise Exception("No model was loaded")
+		
+		if batch_features.shape[1] <= self.num_nn_threshold:
+			# Get the number of features in the model
+			num_features = self.num_nn_threshold * self.features_len
+			if(batch_features.shape[1] == 1): # only one candidate, fill with -100
+				# Prepare the data for prediction
+				X = batch_features #X is the set that is going to be used
+				X = self._flatten_3d_array(X)	
+				X_padded = np.pad(X, ((0, 0), (0, num_features - X.shape[1])), mode='constant', constant_values=-100)
+			elif (batch_features.shape[1] < self.num_nn_threshold): # fill with fake candidates
+				n_rows = self.num_nn_threshold - batch_features.shape[1]
+				batch_features = np.concatenate([batch_features, batch_features[:,batch_features.shape[1]-n_rows:batch_features.shape[1],:]], axis=1)	
+				# Prepare the data for prediction
+				X = batch_features #X is the set that is going to be used
+				X_padded = self._flatten_3d_array(X)
+			else:
+				X = batch_features #X is the set that is going to be used
+				X = self._flatten_3d_array(X)
+				X_padded = X
+
+			X_padded = torch.tensor(X_padded, dtype=torch.float32)
+
+			# Predict the parent in nn model
+			outputs = self.model(X_padded)
+			_, preds = torch.max(outputs.data[:number_of_candidates], 1)
+			return int(preds)
+		
+		# in case we have more candidates than the threshold, we need to test all combinations of 4 candidates
+		elif batch_features.shape[1] > self.num_nn_threshold:
+			# test for all combinations of 4 candidates and return the one with that repeats more times
+			combinations = list(itertools.combinations(range(batch_features.shape[1]), 4))
+			max_count = 0
+			max_idx = 0
+			pred_list = []
+			for i, comb in enumerate(combinations):
+				X = batch_features[:, comb]
+				X = self._flatten_3d_array(X)
+				# Pad X with -1.0 for any missing features/candidates
+				num_features = self.num_nn_threshold * self.features_len
+				if X.shape[1] < num_features:
+					X_padded = np.pad(X, ((0, 0), (0, num_features - X.shape[1])), mode='constant', constant_values=-1.0)
+				else:
+					X_padded = X
+				X_padded = torch.tensor(X_padded, dtype=torch.float32)
+				
+				# Predict the parent in nn model
+				outputs = self.model(X_padded)
+				_, pred = torch.max(outputs.data, 1)
+				pred_list.append(pred)
+			
+			count = Counter(pred_list)
+			most_common = count.most_common(1)
+			return most_common[0][0] 
+	
+	def _flatten_3d_array(self,arr):
+		"""
+		Flattens a 3-dimensional numpy array while keeping the first dimension unchanged
+		"""
+		shape = arr.shape
+		new_shape = (shape[0], np.prod(shape[1:]))
+		return arr.reshape(new_shape)
+
+
+
+	
 @dataclass
 class LineageGuesserExpansionSpeed(LineageGuesser):
 	"""Guess lineage relations by maximizing the expansion velocity of the bud with respect to the candidate parent.
@@ -803,7 +1053,7 @@ class LineageGuesserExpansionSpeed(LineageGuesser):
 	Parameters
 	----------
 	segmentation : Segmentation
-	nn_threshold : float, optional
+	dist_threshold : float, optional
 		cell masks separated by less than this threshold are considered neighbors, by default 8.0.
 	flexible_nn_threshold : bool, optional
 		If no nearest neighbours are found within the given threshold, try to find the closest one, by default False.
@@ -893,7 +1143,7 @@ class LineageGuesserMinTheta(_MajorityVoteMixin, LineageGuesser):
 	Parameters
 	----------
 	segmentation : Segmentation
-	nn_threshold : float, optional
+	dist_threshold : float, optional
 		cell masks separated by less than this threshold are considered neighbors, by default 8.0.
 	flexible_nn_threshold : bool, optional
 		If no nearest neighbours are found within the given threshold, try to find the closest one, by default False.
@@ -931,7 +1181,7 @@ class LineageGuesserMinDistance(LineageGuesser):
 	Parameters
 	----------
 	segmentation : Segmentation
-	nn_threshold : float, optional
+	dist_threshold : float, optional
 		cell masks separated by less than this threshold are considered neighbors, by default 8.0.
 	flexible_nn_threshold : bool, optional
 		If no nearest neighbours are found within the given threshold, try to find the closest one, by default False.

@@ -121,6 +121,33 @@ def main():
 		default=bread.algo.lineage._lineage.LineageGuesserExpansionSpeed.bud_distance_max,
 		type=int
 	)
+
+	# Neural Network
+
+	parser_nn = subparsers_lineage.add_parser(
+		'nn',
+		help='Guess lineage relations by maximizing the expansion velocity of the bud with respect to the candidate parent.',
+		formatter_class=argparse.ArgumentDefaultsHelpFormatter
+	)
+	add_guesser_doc(parser_nn)
+	parser_nn.add_argument(
+		'--num_frames',
+		help='How many frames to consider to compute expansion velocity. At least 2 frames should be considered for good results',
+		default=bread.algo.lineage._lineage.LineageGuesserNN.num_frames,
+		type=int
+	)
+	parser_nn.add_argument(
+		'--bud_distance_max',
+		help='Maximal distance (in pixels) between points on the parent and bud contours to be considered as neighbors',
+		default=bread.algo.lineage._lineage.LineageGuesserNN.bud_distance_max,
+		type=float
+	)
+	parser_nn.add_argument(
+		'--num_nn',
+		help='How many nearest neighbours to consider for each parent cell',
+		default=bread.algo.lineage._lineage.LineageGuesserNN.num_nn,
+		type=int
+	)
 	
 	# Expansion speed
 
@@ -226,6 +253,31 @@ def main():
 			num_frames_refractory=args.num_frames_refractory,
 			num_frames=args.num_frames,
 			bud_distance_max=args.bud_distance_max
+		)
+		logger.info(f'Loaded guesser {guesser}')
+
+		logger.info(f'Running guesser...')
+		lineage_guess: Lineage = guesser.guess_lineage()
+		
+		logger.info(f'Saving lineage...')
+		lineage_guess.save_csv(args.output_file)
+
+	if args.lineage_algo == 'nn':
+		from bread.algo.lineage import LineageGuesserNN
+		from bread.data import Segmentation, Lineage, SegmentationFile
+
+		logger.info('Loading segmentation...')
+		segmentationFile = SegmentationFile.from_h5(args.segmentation_file)
+		fov = args.fov
+		segmentation = segmentationFile.get_segmentation("FOV"+str(fov))
+		logger.info(f'Loaded segmentation {segmentation}')
+
+		logger.info('Loading guesser...')
+		guesser = LineageGuesserNN(
+			segmentation=segmentation,
+			dist_threshold=args.bud_distance_max,
+			num_frames_refractory=args.num_frames_refractory,
+			num_frames=args.num_frames,
 		)
 		logger.info(f'Loaded guesser {guesser}')
 

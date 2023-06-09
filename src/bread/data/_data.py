@@ -194,6 +194,13 @@ class Microscopy:
 		except KeyError:
 			print(f'KeyError: {index} out of range for fov {fov} with {len(self.data[fov])} frames.')
 			return np.zeros(self.data['FOV0'].shape)
+	
+	def get_frame_range(self, fov, time_id_from: int, time_id_to: int):
+		try:
+			return self.data[fov][time_id_from:time_id_to]
+		except KeyError:
+			print(f'KeyError: {index} out of range for fov {fov} with {len(self.data[fov])} frames.')
+			return np.zeros(self.data['FOV0'].shape)
 
 	def get_channel(self):
 		return self.channel

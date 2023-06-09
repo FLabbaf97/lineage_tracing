@@ -306,7 +306,7 @@ class GuesserBudneckLaunch(GuesserLaunch):
 
 	def guesser(self):
 		segmentation = APP_STATE.data.segmentation.get_segmentation(APP_STATE.values.fov)
-		budneck_img = APP_STATE.data.budneck.get_fov(APP_STATE.values.fov)
+		budneck_img = APP_STATE.data.budneck.get_frame_range(APP_STATE.values.fov, time_id_from=0, time_id_to=segmentation.data.shape[0])
 
 		return LineageGuesserBudLum(
 			segmentation=segmentation,

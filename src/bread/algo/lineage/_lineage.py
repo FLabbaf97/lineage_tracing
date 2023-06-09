@@ -44,7 +44,7 @@ class LineageGuesser(ABC):
 	Parameters
 	----------
 	seg : Segmentation
-	dist_threshold : float, optional
+	nn_threshold : float, optional
 		Cell masks separated by less than this threshold are considered neighbours. by default 8.0.
 	flexible_threshold : bool, optional
 		If no nearest neighbours are found within the given threshold, try to find the closest one, by default False.
@@ -62,7 +62,7 @@ class LineageGuesser(ABC):
 	"""
 
 	segmentation: Segmentation
-	dist_threshold: float = 8
+	nn_threshold: float = 8
 	flexible_nn_threshold: bool = False
 	num_frames_refractory: int = 0
 	scale_length: float = 1  # [length unit]/px
@@ -83,8 +83,8 @@ class LineageGuesser(ABC):
 		self._features = Features(
 			segmentation=self.segmentation,
 			scale_length=self.scale_length, scale_time=self.scale_time,
-			nn_threshold=self.dist_threshold,
-			bud_distance_max=self.dist_threshold
+			nn_threshold=self.nn_threshold,
+			bud_distance_max=self.nn_threshold
 		)
 
 	@abstractmethod
@@ -206,9 +206,9 @@ class LineageGuesser(ABC):
 				contour_parent = self._features._contour(parent_id, time_id)
 				dists[i] = self._features._nearest_points(contour_bud, contour_parent)[-1]
 			if(threshold_mode == 'dist'):
-				if any(dists <= self.dist_threshold):
+				if any(dists <= self.nn_threshold):
 					# the cell has nearest neighbours
-					candidate_ids = candidate_ids[dists <= self.dist_threshold]
+					candidate_ids = candidate_ids[dists <= self.nn_threshold]
 				else:
 					# the cell has no nearest neighbours
 					if self.flexible_nn_threshold:
@@ -216,7 +216,7 @@ class LineageGuesser(ABC):
 						candidate_ids = candidate_ids[[np.argmin(dists)]]
 					else:
 						# warn that the cell has no nearest neighbours
-						warnings.warn(BreadWarning(f'cell #{nearest_neighbours_of} does not have nearest neighbours with a distance less than {self.dist_threshold}, and flexible_threshold is {self.flexible_nn_threshold}.'))
+						warnings.warn(BreadWarning(f'cell #{nearest_neighbours_of} does not have nearest neighbours with a distance less than {self.nn_threshold}, and flexible_threshold is {self.flexible_nn_threshold}.'))
 						candidate_ids = np.array(tuple())
 			elif(threshold_mode == 'count'):
 				# Combine the two lists into tuples
@@ -329,7 +329,7 @@ class LineageGuesserBudLum(_MajorityVoteMixin, LineageGuesser, _BudneckMixin):
 	----------
 	segmentation : Segmentation
 	budneck_img : Microscopy
-	dist_threshold : float, optional
+	nn_threshold : float, optional
 		Cell masks separated by less than this threshold are considered neighbors, by default 8.0.
 	flexible_nn_threshold : bool, optional
 		If no nearest neighbours are found within the given threshold, try to find the closest one, by default False.
@@ -359,8 +359,12 @@ class LineageGuesserBudLum(_MajorityVoteMixin, LineageGuesser, _BudneckMixin):
 	def __post_init__(self):
 		LineageGuesser.__post_init__(self)
 		assert self.offset_frames >= 0, f'offset_frames must be greater or equal to zero, got offset_frames={self.offset_frames}'
-		assert self.segmentation.data.shape == self.budneck_img.data.shape, f'segmentation and budneck imaging must have the same shape, got segmentation data of shape {self.segmentation.data.shape} and budneck marker data of shape {self.budneck_img.data.shape}'
-		
+		# assert self.segmentation.data.shape == self.budneck_img.data.shape, f'segmentation and budneck imaging must have the same shape, got segmentation data of shape {self.segmentation.data.shape} and budneck marker data of shape {self.budneck_img.data.shape}'
+		if self.segmentation.data.shape != self.budneck_img.data.shape:
+			self.budneck_img.data = self.budneck_img.data[:self.segmentation.data.shape[0]]
+
+
+
 	def _guess_parent_singleframe(self, bud_id: int, time_id: int) -> int:
 		"""Guess the parent of a bud, using the budneck marker at a certain frame.
 
@@ -496,7 +500,7 @@ class LineageGuesserML(LineageGuesser):
 	Parameters
 	----------
 	segmentation : Segmentation
-	dist_threshold : float, optional
+	nn_threshold : float, optional
 		cell masks separated by less than this threshold are considered neighbors, by default 8.0.
 	flexible_nn_threshold : bool, optional
 		If no nearest neighbours are found within the given threshold, try to find the closest one, by default False.
@@ -826,7 +830,7 @@ class LineageGuesserNN(LineageGuesser):
 	Parameters
 	----------
 	segmentation : Segmentation
-	dist_threshold : float, optional
+	nn_threshold : float, optional
 		cell masks separated by less than this threshold are considered neighbors, by default 10.
 	num_frames_refractory : int, optional
 		After a parent cell has budded, exclude it from the parent pool in the next frames.
@@ -841,24 +845,26 @@ class LineageGuesserNN(LineageGuesser):
 	"""
 	num_frames: int = 8
 	num_nn_threshold: int = 4
-	dist_threshold: float = 8.0
+	nn_threshold: float = 8.0
 	saved_model: str = None
 
 	def __post_init__(self):
 		LineageGuesser.__post_init__(self)
 		assert self.num_frames >= 2, f'not enough consecutive frames considered for analysis, got {self.num_frames}.'
 		self._features.budding_time = self.num_frames
-		self._features.dist_threshold = self.dist_threshold
+		self._features.nn_threshold = self.nn_threshold
 
 		# Load the saved model
 		# TODO: fix hard coded layers
-		layers = [64,64,5]
+		layers = [64,64,4]
 		self.model = LineageNN(layers = layers)
 		current_dir = os.path.dirname(os.path.abspath(__file__))
 		if self.saved_model is None:
-			print("No model was provided, using the default model")
-			self.saved_model = os.path.join(current_dir, 'saved_models/best_model_thresh8_frame_num8_normalized_False.pth')
-		self.model.load_state_dict(torch.load(self.saved_model))
+			print("No model was provided")
+			# raise Exception("No model was provided")
+			# self.saved_model = os.path.join(current_dir, 'saved_models/best_model_thresh8_frame_num8_normalized_False.pth')
+		else:
+			self.model.load_state_dict(torch.load(self.saved_model))
 		self.features_len = int(layers[0]/4)
 
 	def _get_features(self, bud_id, candidate_id, time_id, selected_times):
@@ -1053,7 +1059,7 @@ class LineageGuesserExpansionSpeed(LineageGuesser):
 	Parameters
 	----------
 	segmentation : Segmentation
-	dist_threshold : float, optional
+	nn_threshold : float, optional
 		cell masks separated by less than this threshold are considered neighbors, by default 8.0.
 	flexible_nn_threshold : bool, optional
 		If no nearest neighbours are found within the given threshold, try to find the closest one, by default False.
@@ -1143,7 +1149,7 @@ class LineageGuesserMinTheta(_MajorityVoteMixin, LineageGuesser):
 	Parameters
 	----------
 	segmentation : Segmentation
-	dist_threshold : float, optional
+	nn_threshold : float, optional
 		cell masks separated by less than this threshold are considered neighbors, by default 8.0.
 	flexible_nn_threshold : bool, optional
 		If no nearest neighbours are found within the given threshold, try to find the closest one, by default False.
@@ -1181,7 +1187,7 @@ class LineageGuesserMinDistance(LineageGuesser):
 	Parameters
 	----------
 	segmentation : Segmentation
-	dist_threshold : float, optional
+	nn_threshold : float, optional
 		cell masks separated by less than this threshold are considered neighbors, by default 8.0.
 	flexible_nn_threshold : bool, optional
 		If no nearest neighbours are found within the given threshold, try to find the closest one, by default False.

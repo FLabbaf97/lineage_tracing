@@ -7,9 +7,9 @@ from typing import Optional, List
 from pathlib import Path
 import pyqtgraph as pg
 from bread.data import Lineage, Microscopy, Segmentation, SegmentationFile
-from _state import APP_STATE
-from _utils import lerp
-from _dialogs import FilleChannelMapperDialog, FileTypeDialog
+from ._state import APP_STATE
+from ._utils import lerp
+from ._dialogs import FilleChannelMapperDialog, FileTypeDialog
 
 __all__ = ['Viewer']
 

@@ -3,7 +3,7 @@ from bread.data import Lineage, Microscopy, Segmentation, SegmentationFile
 from typing import Optional, List
 from dataclasses import dataclass, field
 from pathlib import Path
-from _utils import clamp
+from ._utils import clamp
 
 import logging
 logging.basicConfig(level=logging.INFO)

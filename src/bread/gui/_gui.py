@@ -3,9 +3,9 @@ from PySide6.QtWidgets import QWidget, QMenuBar, QMainWindow, QVBoxLayout, QLabe
 from PySide6.QtGui import QAction, QIcon
 from PySide6.QtCore import QObject, Signal, Slot
 from typing import Optional, List
-from _state import APP_STATE
-from _editor import Editor
-from _viewer import Viewer
+from ._state import APP_STATE
+from ._editor import Editor
+from ._viewer import Viewer
 
 __all__ = ['App']
 

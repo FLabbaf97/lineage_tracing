@@ -1,5 +1,5 @@
 if __name__ == '__main__':
-	from bread.data import Features, Segmentation
+	from bread.data import Features, Segmentation, SegmentationFile
 	import bread.algo.tracking as tracking
 	import argparse
 	from pathlib import Path
@@ -22,7 +22,7 @@ if __name__ == '__main__':
 	args.fp_segmentations = [ Path(fp) for fp in sorted(glob(args.fp_segmentations)) ]
 
 	for fp_segmentation in tqdm(args.fp_segmentations, desc='segmentation'):
-		seg = Segmentation.from_h5(fp_segmentation)
+		seg = SegmentationFile.from_h5(fp_segmentation).get_segmentation("FOV0")
 		feat = Features(seg, nn_threshold=args.nn_threshold, scale_length=args.scale_length, scale_time=args.scale_time)
 		name = fp_segmentation.stem
 		os.makedirs(args.out / name, exist_ok=True)

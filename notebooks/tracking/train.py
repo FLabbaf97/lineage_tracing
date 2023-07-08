@@ -13,6 +13,8 @@ from skorch.callbacks import LRScheduler, Checkpoint, ProgressBar, Checkpoint, E
 
 from trainutils import SaveHyperParams, seed
 
+# import wandb
+# from skorch.callbacks import WandbLogger
 
 datadir = Path('../../data/generated/tracking/assgraphs/')
 dataset_filepaths = {
@@ -20,6 +22,9 @@ dataset_filepaths = {
 	'colony_5__dt_12345678__t_all': list(sorted(glob(str(datadir / 'colony005_segmentation__assgraph__dt_00[1-8]__*.pt')))),
 	'colony_1234__dt_1234__t_all': list(sorted(glob(str(datadir / 'colony00[1-4]_segmentation__assgraph__dt_00[1-4]__*.pt')))),
 	'colony_5__dt_1234__t_all': list(sorted(glob(str(datadir / 'colony005_segmentation__assgraph__dt_00[1-4]__*.pt')))),
+	'colony_12345__dt_1234__t_all': list(sorted(glob(str(datadir / 'colony00[1-5]_segmentation__assgraph__dt_00[1-4]__*.pt')))),
+	'colony_012345__dt_1234__t_all': list(sorted(glob(str(datadir / 'colony00[0-5]_segmentation__assgraph__dt_00[1-4]__*.pt')))),
+
 }
 
 if __name__ == '__main__':
@@ -37,6 +42,8 @@ if __name__ == '__main__':
 	parser.add_argument('--step-size', dest='step_size', default=512, type=int, help='steplr step size in number of batches')
 	parser.add_argument('--gamma', dest='gamma', default=0.5, type=float, help='steplr gamma')
 	parser.add_argument('--cv', dest='cv', default=5, type=Optional[int], help='number of cv folds')
+	parser.add_argument('--patience', dest='patience', default=6, type=Optional[int], help='number of epoch to wait for improvement before early stopping')
+
 
 	args = parser.parse_args()
 
@@ -67,7 +74,29 @@ if __name__ == '__main__':
 			cv=args.cv,
 			stratified=False,  # Since we are using y=None
 		)
-
+	
+	# Create a wandb Run
+	# Alternative: Create a wandb Run without a W&B account
+	# wandb_run = wandb.init(anonymous="allow")
+	# set wandb config
+	config = {
+		'dataset': args.dataset,
+		'filter_file_mb': args.filter_file_mb,
+		'dropout_rate': args.dropout_rate,
+		'encoder_hidden_channels': args.encoder_hidden_channels,
+		'encoder_num_layers': args.encoder_num_layers,
+		'conv_hidden_channels': args.conv_hidden_channels,
+		'conv_num_layers': args.conv_num_layers,
+		'max_epochs': args.max_epochs,
+		'lr': args.lr,
+		'weight_decay': args.weight_decay,
+		'step_size': args.step_size,
+		'gamma': args.gamma,
+		'cv': args.cv,
+		'patience': args.patience,
+	}
+	# Log hyper-parameters 
+	# wandb_run.config.update(config)
 	net = AssignmentClassifier(
 		GNNTracker,
 		module__num_node_attr=len(dataset.node_attr),
@@ -104,6 +133,7 @@ if __name__ == '__main__':
 			Checkpoint(monitor='valid_loss_best', dirname=resultdir, f_pickle='pickle.pkl'),
 			SaveHyperParams(dirname=resultdir),
 			ProgressBar(detect_notebook=False),
+			# WandbLogger(wandb_run),
 			# EpochScoring(scoring=accuracy_assignment, lower_is_better=False, name='valid_acc_ass'),
 		],
 	)

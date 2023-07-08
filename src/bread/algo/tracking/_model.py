@@ -44,7 +44,7 @@ class GNNTracker(nn.Module):
 
 		self.node_encoder = gnn.MLP(
 			in_channels=self.num_node_attr,
-			hidden_channels=self.encoder_hidden_channels,
+			hidden_channels=self.conv_hidden_channels,
 			out_channels=self.conv_hidden_channels,
 			num_layers=self.encoder_num_layers,
 			dropout=self.dropout_rate,

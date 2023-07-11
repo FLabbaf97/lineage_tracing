@@ -34,12 +34,18 @@ if __name__ == '__main__':
 	
 	args = parser.parse_args()
 	args_dict = vars(args)
-	args.fp_segmentations = [ Path(fp) for fp in sorted(glob(args.fp_segmentations)) ]
+	print("build cell graph args: ", args_dict)
+	# args.fp_segmentations = [ Path(fp) for fp in sorted(glob(args.fp_segmentations)) ]
+	file_array = []
+	for filename in os.listdir(args.fp_segmentations):
+		if filename.endswith(".h5"):
+			file_array.append(os.path.join(args.fp_segmentations, filename))
+	args.fp_segmentations = file_array
 
 	for fp_segmentation in tqdm(args.fp_segmentations, desc='segmentation'):
 		seg = SegmentationFile.from_h5(fp_segmentation).get_segmentation("FOV0")
 		feat = Features(seg, nn_threshold=args.nn_threshold, scale_length=args.scale_length, scale_time=args.scale_time)
-		name = fp_segmentation.stem
+		name = Path(fp_segmentation).stem
 		os.makedirs(args.out / name, exist_ok=True)
 
 		for time_id in tqdm(range(len(seg)), desc='frame', leave=False):

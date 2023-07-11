@@ -13,22 +13,31 @@ from skorch.callbacks import LRScheduler, Checkpoint, ProgressBar, Checkpoint, E
 
 from trainutils import SaveHyperParams, seed
 
-# import wandb
-# from skorch.callbacks import WandbLogger
+import wandb
+from skorch.callbacks import WandbLogger
+WANDB_API_KEY="e0f887ce4be7bebfe48930ffcff4027f49b02425"
+os.environ['WANDB_API_KEY'] = WANDB_API_KEY
+os.environ['WANDB_CONSOLE'] = "off"
+os.environ['WANDB_JOB_TYPE'] = 'features_test'
 
-datadir = Path('../../data/generated/tracking/assgraphs/')
-dataset_filepaths = {
-	'colony_1234__dt_12345678__t_all': list(sorted(glob(str(datadir / 'colony00[1-4]_segmentation__assgraph__dt_00[1-8]__*.pt')))),
-	'colony_5__dt_12345678__t_all': list(sorted(glob(str(datadir / 'colony005_segmentation__assgraph__dt_00[1-8]__*.pt')))),
-	'colony_1234__dt_1234__t_all': list(sorted(glob(str(datadir / 'colony00[1-4]_segmentation__assgraph__dt_00[1-4]__*.pt')))),
-	'colony_5__dt_1234__t_all': list(sorted(glob(str(datadir / 'colony005_segmentation__assgraph__dt_00[1-4]__*.pt')))),
-	'colony_12345__dt_1234__t_all': list(sorted(glob(str(datadir / 'colony00[1-5]_segmentation__assgraph__dt_00[1-4]__*.pt')))),
-	'colony_012345__dt_1234__t_all': list(sorted(glob(str(datadir / 'colony00[0-5]_segmentation__assgraph__dt_00[1-4]__*.pt')))),
-
-}
 
 if __name__ == '__main__':
+
+	# just a placeholder
+	data_dir = Path('../../data/generated/tracking/assgraphs/') 
+	dataset_filepaths = {
+		'colony_1234__dt_12345678__t_all': list(sorted(glob(str(data_dir / 'colony00[1-4]_segmentation__assgraph__dt_00[1-8]__*.pt')))),
+		'colony_5__dt_12345678__t_all': list(sorted(glob(str(data_dir / 'colony005_segmentation__assgraph__dt_00[1-8]__*.pt')))),
+		'colony_1234__dt_1234__t_all': list(sorted(glob(str(data_dir / 'colony00[1-4]_segmentation__assgraph__dt_00[1-4]__*.pt')))),
+		'colony_5__dt_1234__t_all': list(sorted(glob(str(data_dir / 'colony005_segmentation__assgraph__dt_00[1-4]__*.pt')))),
+		'colony_12345__dt_1234__t_all': list(sorted(glob(str(data_dir / 'colony00[1-5]_segmentation__assgraph__dt_00[1-4]__*.pt')))),
+		'colony_012345__dt_1234__t_all': list(sorted(glob(str(data_dir / 'colony00[0-5]_segmentation__assgraph__dt_00[1-4]__*.pt')))),
+		'colony_0123__dt_1234__t_all': list(sorted(glob(str(data_dir / 'colony00[0-3]_segmentation__assgraph__dt_00[1-4]__*.pt')))),
+	}
+	
 	parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+	parser.add_argument('--assgraphs', dest='ass_graphs', required=True, type=str, help='folder path to the assignment graphs (be careful, should be a directory not file.)')
+	parser.add_argument('--result-dir', dest='result_dir', default=f'../../data/generated/tracking/models/{datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}', type=str, help='folder path to save the results')
 	parser.add_argument('--dataset', dest='dataset', type=str, default='colony_1234__dt_1234__t_all', choices=list(dataset_filepaths.keys()), help='training data name')
 	parser.add_argument('--filter-file-mb', dest='filter_file_mb', type=float, default=10, help='filter training file sizes exceeding `filter_file_mb` MiB')
 	parser.add_argument('--dropout-rate', dest='dropout_rate', type=float, default=1e-7, help='dropout rate')
@@ -46,13 +55,26 @@ if __name__ == '__main__':
 
 
 	args = parser.parse_args()
+	data_dir = Path(args.ass_graphs)
+	dataset_filepaths = {
+		'colony_1234__dt_12345678__t_all': list(sorted(glob(str(data_dir / 'colony00[1-4]_segmentation__assgraph__dt_00[1-8]__*.pt')))),
+		'colony_5__dt_12345678__t_all': list(sorted(glob(str(data_dir / 'colony005_segmentation__assgraph__dt_00[1-8]__*.pt')))),
+		'colony_1234__dt_1234__t_all': list(sorted(glob(str(data_dir / 'colony00[1-4]_segmentation__assgraph__dt_00[1-4]__*.pt')))),
+		'colony_5__dt_1234__t_all': list(sorted(glob(str(data_dir / 'colony005_segmentation__assgraph__dt_00[1-4]__*.pt')))),
+		'colony_12345__dt_1234__t_all': list(sorted(glob(str(data_dir / 'colony00[1-5]_segmentation__assgraph__dt_00[1-4]__*.pt')))),
+		'colony_012345__dt_1234__t_all': list(sorted(glob(str(data_dir / 'colony00[0-5]_segmentation__assgraph__dt_00[1-4]__*.pt')))),
+		'colony_0123__dt_1234__t_all': list(sorted(glob(str(data_dir / 'colony00[0-3]_segmentation__assgraph__dt_00[1-4]__*.pt')))),
+	}
+
+	print('data_dir: ', data_dir)
+	
 
 	device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-	resultdir = Path(f'../../data/generated/tracking/models/{datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}')
+	resultdir = Path(args.result_dir)
 	os.makedirs(resultdir, exist_ok=True)
 
 	print('-- arguments --')
-	pprint(vars(args))
+	print(vars(args))
 	with open(resultdir / 'metadata.json', 'w') as file:
 		json.dump(vars(args), file)
 
@@ -77,7 +99,7 @@ if __name__ == '__main__':
 	
 	# Create a wandb Run
 	# Alternative: Create a wandb Run without a W&B account
-	# wandb_run = wandb.init(anonymous="allow")
+	wandb_run = wandb.init()
 	# set wandb config
 	config = {
 		'dataset': args.dataset,
@@ -96,7 +118,7 @@ if __name__ == '__main__':
 		'patience': args.patience,
 	}
 	# Log hyper-parameters 
-	# wandb_run.config.update(config)
+	wandb_run.config.update(config)
 	net = AssignmentClassifier(
 		GNNTracker,
 		module__num_node_attr=len(dataset.node_attr),
@@ -133,7 +155,7 @@ if __name__ == '__main__':
 			Checkpoint(monitor='valid_loss_best', dirname=resultdir, f_pickle='pickle.pkl'),
 			SaveHyperParams(dirname=resultdir),
 			ProgressBar(detect_notebook=False),
-			# WandbLogger(wandb_run),
+			WandbLogger(wandb_run, save_model=True),
 			# EpochScoring(scoring=accuracy_assignment, lower_is_better=False, name='valid_acc_ass'),
 		],
 	)

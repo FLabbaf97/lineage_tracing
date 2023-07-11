@@ -18,10 +18,14 @@ if __name__ == '__main__':
 
 	args = parser.parse_args()
 	args_dict = vars(args)
+	print("build ass graph args: ", args_dict)
 	args.cellgraph_dirs = [ Path(fp) for fp in sorted(glob(args.cellgraph_dirs)) ]
 	os.makedirs(args.out, exist_ok=True)
 	extra = { 'node_attr': None, 'edge_attr': None, 'num_class_positive': 0, 'num_class_negative': 0 }
+	node_attr = []
+	edge_attr = []
 
+	
 	for cellgraph_dir in tqdm(args.cellgraph_dirs, desc='cellgraph'):
 		cellgraph_paths = list(sorted(glob(str(cellgraph_dir / 'cellgraph__*.pkl'))))
 		cellgraphs = []
@@ -34,7 +38,7 @@ if __name__ == '__main__':
 			args.t1_max = len(cellgraphs)
 
 		name = cellgraph_dir.stem
-
+		
 		for t1 in tqdm(range(min(len(cellgraphs), args.t1_max)), desc='t1', leave=False):
 			for t2 in tqdm(range(min(t1+args.framediff_min, len(cellgraphs)), min(t1+args.framediff_max+1, len(cellgraphs))), desc='t2', leave=False):
 				nxgraph = tracking.build_assgraph(cellgraphs[t1], cellgraphs[t2], include_target_feature=True)

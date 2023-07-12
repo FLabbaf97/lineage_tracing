@@ -37,7 +37,7 @@ if __name__ == '__main__':
 	
 	parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 	parser.add_argument('--assgraphs', dest='ass_graphs', required=True, type=str, help='folder path to the assignment graphs (be careful, should be a directory not file.)')
-	parser.add_argument('--result-dir', dest='result_dir', default=f'../../data/generated/tracking/models/{datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}', type=str, help='folder path to save the results')
+	parser.add_argument('--result-dir', dest='result_dir', default=f'../../data/generated/tracking/models/', type=str, help='folder path to save the results')
 	parser.add_argument('--dataset', dest='dataset', type=str, default='colony_1234__dt_1234__t_all', choices=list(dataset_filepaths.keys()), help='training data name')
 	parser.add_argument('--filter-file-mb', dest='filter_file_mb', type=float, default=10, help='filter training file sizes exceeding `filter_file_mb` MiB')
 	parser.add_argument('--dropout-rate', dest='dropout_rate', type=float, default=1e-7, help='dropout rate')
@@ -65,15 +65,22 @@ if __name__ == '__main__':
 		'colony_012345__dt_1234__t_all': list(sorted(glob(str(data_dir / 'colony00[0-5]_segmentation__assgraph__dt_00[1-4]__*.pt')))),
 		'colony_0123__dt_1234__t_all': list(sorted(glob(str(data_dir / 'colony00[0-3]_segmentation__assgraph__dt_00[1-4]__*.pt')))),
 	}
-
-	print('data_dir: ', data_dir)
-	
-
+	dataset_regex = {
+		'colony_1234__dt_12345678__t_all': "^colony00(1|2|3|4)_segmentation__assgraph__dt_00(1|2|3|4|5|6|7|8)__.*pt$",
+		'colony_5__dt_12345678__t_all': "^colony005_segmentation__assgraph__dt_00(1|2|3|4|5|6|7|8)__.*pt$",
+		'colony_1234__dt_1234__t_all': "^colony00(1|2|3|4)_segmentation__assgraph__dt_00(1|2|3|4)__.*pt$",
+		'colony_5__dt_1234__t_all': "^colony005_segmentation__assgraph__dt_00(1|2|3|4)__.*pt$",
+		'colony_12345__dt_1234__t_all': "^colony00(1|2|3|4|5)_segmentation__assgraph__dt_00(1|2|3|4)__.*pt$",
+		'colony_012345__dt_1234__t_all': "^colony00(0|1|2|3|4|5)_segmentation__assgraph__dt_00(1|2|3|4)__.*pt$",
+		'colony_0123__dt_1234__t_all': "^colony00(0|1|2|3)_segmentation__assgraph__dt_00(1|2|3|4)__.*pt$",
+	}
 	device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-	resultdir = Path(args.result_dir)
+	resultdir = Path(f'{args.result_dir}/{datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}')
+	print("-- result directory --")
+	print(resultdir)
 	os.makedirs(resultdir, exist_ok=True)
 
-	print('-- arguments --')
+	print('-- train arguments --')
 	print(vars(args))
 	with open(resultdir / 'metadata.json', 'w') as file:
 		json.dump(vars(args), file)
@@ -81,7 +88,14 @@ if __name__ == '__main__':
 	print(f'device : {device}')
 
 	# filter out files that are too large
-	dataset = AssignmentDataset([ filepath for filepath in dataset_filepaths[args.dataset] if os.stat(filepath).st_size/2**20 < args.filter_file_mb ])
+	file_array = []
+	import re
+	regex = dataset_regex[args.dataset]
+	for filename in os.listdir(args.ass_graphs):
+		if re.search(regex, filename):
+			file_array.append(os.path.join(args.ass_graphs, filename))
+	dataset = AssignmentDataset(file_array)
+	# dataset = AssignmentDataset([ filepath for filepath in dataset_filepaths[args.dataset] if os.stat(filepath).st_size/2**20 < args.filter_file_mb ])
 	print('-- training dataset --')
 	print(dataset)
 

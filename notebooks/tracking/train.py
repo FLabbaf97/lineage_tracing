@@ -20,7 +20,6 @@ os.environ['WANDB_API_KEY'] = WANDB_API_KEY
 os.environ['WANDB_CONSOLE'] = "off"
 os.environ['WANDB_JOB_TYPE'] = 'features_test'
 
-
 if __name__ == '__main__':
 
 	# just a placeholder
@@ -50,7 +49,7 @@ if __name__ == '__main__':
 	parser.add_argument('--weight-decay', dest='weight_decay', default=0.01, type=float, help='weight decay (L2 regularization)')
 	parser.add_argument('--step-size', dest='step_size', default=512, type=int, help='steplr step size in number of batches')
 	parser.add_argument('--gamma', dest='gamma', default=0.5, type=float, help='steplr gamma')
-	parser.add_argument('--cv', dest='cv', default=5, type=Optional[int], help='number of cv folds')
+	parser.add_argument('--cv', dest='cv', default=3, type=Optional[int], help='number of cv folds')
 	parser.add_argument('--patience', dest='patience', default=6, type=Optional[int], help='number of epoch to wait for improvement before early stopping')
 
 
@@ -170,7 +169,7 @@ if __name__ == '__main__':
 			SaveHyperParams(dirname=resultdir),
 			ProgressBar(detect_notebook=False),
 			WandbLogger(wandb_run, save_model=True),
-			# EpochScoring(scoring=accuracy_assignment, lower_is_better=False, name='valid_acc_ass'),
+			EpochScoring(scoring=accuracy_assignment, lower_is_better=False, name='valid_acc_ass'),
 		],
 	)
 

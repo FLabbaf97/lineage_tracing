@@ -60,7 +60,7 @@ def build_assgraph(g1: nx.DiGraph, g2: nx.DiGraph, include_target_feature: bool 
 	return graph
 
 
-def to_data(ga: nx.DiGraph, include_target_feature: bool = True) -> Tuple[TGData, List[str], List[str]]:
+def to_data(ga: nx.DiGraph, include_target_feature: bool = True, complex_graph: bool = False) -> Tuple[TGData, List[str], List[str]]:
 	"""Convert assignment graph generated from ``build_assgraph`` to ``torch_geometric.data.Data``
 
 	Parameters
@@ -94,8 +94,12 @@ def to_data(ga: nx.DiGraph, include_target_feature: bool = True) -> Tuple[TGData
 		tga.y = gt.x
 
 	# include the cell ids in the graph, so we can conveniently reshape afterwards
-	tga.cell_ids1 = set([ i for i, a in ga.nodes ])
-	tga.cell_ids2 = set([ a for i, a in ga.nodes ])
+	if (complex_graph):
+		tga.cell_ids1 = set([ i for i, a in ga.nodes ])
+		tga.cell_ids2 = set([ a for i, a in ga.nodes ])
+	else:
+		tga.cell_ids = set([i for i in ga.nodes])
+	
 
 	return tga, node_attrs, edge_attrs
 

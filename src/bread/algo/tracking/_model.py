@@ -41,6 +41,7 @@ class GNNTracker(nn.Module):
 		self.conv_hidden_channels = conv_hidden_channels
 		self.conv_num_layers = conv_num_layers
 		self.num_classes = num_classes
+		self.data = None
 
 		self.node_encoder = gnn.MLP(
 			in_channels=self.num_node_attr,
@@ -93,4 +94,10 @@ class GNNTracker(nn.Module):
 		for layer in self.layers[1:]:
 			x = layer(x, edge_index, edge_attr)
 
-		return self.out(x)
+		out = self.out(x)
+
+		# Print the sum of all model parameters
+		# print('Sum of model parameters:', sum(p.sum() for p in self.parameters()))
+
+		return out
+

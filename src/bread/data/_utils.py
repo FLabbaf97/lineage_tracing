@@ -7,8 +7,13 @@ import glob
 from PIL import Image
 import numpy as np
 import os
+from nd2reader import ND2Reader
+from pathlib import Path
+import tifffile
 
-__all__ = ['dump_npz', 'load_npz', 'tif_to_h5', 'tif_to_stack']
+
+
+__all__ = ['dump_npz', 'load_npz', 'tif_to_h5', 'tif_to_stack', 'nd2_to_tif']
 
 def dump_npz(filepath, data: dict, force=False, dry=False, compress=True):
 	"""Dumps data to disk in .npz format
@@ -109,3 +114,28 @@ def tif_to_stack(tif_dir, stack_filename):
         stack_tif.save(stack_filename)
 
     print(f'Saved stack volume to {stack_filename}')
+
+	
+def nd2_to_tif(nd2_dir: str, tif_path: str, fov: int=0, channel: int=0):
+	# read the nd2 file, and convert the fov to tif
+	# nd2_dir: directory of the nd2 file
+	# fov: field of view to extract
+	# tif_path: path to save the extracted tif file
+
+	with ND2Reader(nd2_dir) as images:
+		sizec = images.sizes['c'] if 'c' in images.sizes  else 1		                    
+		sizev = images.sizes['v'] if 'v' in images.sizes else 1
+		try:
+			channel_names = images.metadata['channels'] if images.metadata['channels'] else [f'Channel{n}' for n in range(sizec)]
+		except KeyError:
+			channel_names = [f'Channel{n}' for n in range(sizec)]
+		
+		images.bundle_axes = 'tyx'  # Set the order of axes for the output array
+		if sizec > 1:
+			images.default_coords['c'] = channel  # Set the channel to read
+		if sizev > 1:
+			images.default_coords['v'] = fov  # Set the field of view to read
+
+		stacked_frames = np.stack([frame for frame in images[0]])
+		# Save as a single TIFF file
+		tifffile.imsave(Path(tif_path), stacked_frames)

@@ -1,9 +1,12 @@
 from dataclasses import dataclass, field
-from ._data import Segmentation, Contour, Ellipse, BreadWarning, BreadException
+from ._data import Segmentation, Contour, Ellipse, BreadWarning, BreadException, Microscopy
 from typing import Any, Callable, List, Optional, Tuple, TypeVar
 import scipy.spatial
 import numpy as np
 import warnings
+
+import cv2
+from skimage.feature import graycomatrix, graycoprops
 
 __all__ = ['Features']
 
@@ -39,6 +42,9 @@ class Features:
 	budding_time: int = 5
 	nn_threshold: float = 8.0
 	bud_distance_max: float = 7.0
+	microscopy: Microscopy = None
+	fov: str = "FOV0"
+
 
 	_cached_contours: 'dict[Tuple[int, int], Contour]' = field(init=False, repr=False, default_factory=dict)
 	_cached_ellipses: 'dict[Tuple[int, int], Ellipse]' = field(init=False, repr=False, default_factory=dict)
@@ -48,6 +54,10 @@ class Features:
 	def cell_area(self, time_id: int, cell_id: int) -> float:
 		"""area enclosed by the cell contour"""
 		return self._contour(cell_id, time_id).area * self.scale_length**2
+
+	def cell_age(self, time_id: int, cell_id: int) -> int:
+		"""age of the cell in frames"""
+		return time_id - self.segmentation.birth_time(cell_id)
 	
 	def cell_r_equiv(self, time_id: int, cell_id: int) -> float:
 		"""radius of the circle with same area as ellipse : r=sqrt(a*b)"""
@@ -79,6 +89,10 @@ class Features:
 		cell_el = self._ellipse(cell_id, time_id)
 		cell_min = np.array([np.cos(cell_el.angle+np.pi/2), np.sin(cell_el.angle+np.pi/2)]) * cell_el.r_min
 		return cell_min
+
+	def cell_cm(self, time_id: int, cell_id: int) -> np.ndarray:
+		"""center of mass of the cell"""
+		return self._cm(cell_id, time_id) * self.scale_length
 
 	def pair_budcm_to_budpt(self, time_id, bud_id:int , candidate_id:int) -> np.ndarray:
 		"""Return the vector from the bud center of mass to the bud point"""
@@ -391,6 +405,7 @@ class Features:
 
 		key = (cell_id, time_id)
 		if key not in self._cached_ellipses:
+			# print("on cell" , key)
 			self._cached_ellipses[key] = Ellipse.from_contour(self._contour(cell_id, time_id))
 		
 		return self._cached_ellipses[key]
@@ -419,3 +434,62 @@ class Features:
 			self._cached_ellipses_max_ecc[key] = (el, time_id_)
 
 		return self._cached_ellipses_max_ecc[key]
+	
+	def cell_mean_intensity(self, time_id: int, cell_id: int) -> float:
+		"""Mean intensity of the cell in the given time frame"""
+		if self.microscopy is None: 
+			return None
+		assert self.microscopy is not None, "Microscopy object not set"
+		cell_mask = self.segmentation.data[time_id] == cell_id
+		cell_intensity = self.microscopy.get_frame(self.fov, time_id)[cell_mask]
+		mean_intensity = np.mean(cell_intensity)
+		return mean_intensity
+
+	def cell_std_intensity(self, time_id: int, cell_id: int) -> float:
+		"""Standard deviation of the intensity of the cell in the given time frame"""
+		if self.microscopy is None: 
+			return None
+		assert self.microscopy is not None, "Microscopy object not set"
+		cell_mask = self.segmentation.data[time_id] == cell_id
+		cell_intensity = self.microscopy.get_frame(self.fov, time_id)[cell_mask]
+		std_intensity = np.std(cell_intensity)
+		return std_intensity
+	
+	def cell_texture(self, time_id: int, cell_id: int, distance: int = 1) -> float:
+		if self.microscopy is None: 
+			return None,None,None,None
+		assert self.microscopy is not None, "Microscopy object not set"
+		# cell_mask = self.segmentation.data[time_id] == cell_id
+		image = self.microscopy.get_frame(self.fov, time_id)
+		cm = self._cm(cell_id, time_id)
+		r = self.cell_r_equiv(time_id, cell_id)
+		# crop the image around the cell
+		xmin = int(cm[1]-r)
+		xmax = int(cm[1]+r)
+		ymin = int(cm[0]-r)
+		ymax = int(cm[0]+r)
+		cell_image = image[ymin:ymax, xmin:xmax]
+		distance = [1,3]
+		angles = [0, np.pi/4, np.pi/2, 3*np.pi/4]
+		if(cell_image.shape[0] == 0 or cell_image.shape[1] == 0):
+			print(f'warning: cell {cell_id} in time {time_id} not found')
+			return 0,0,0,0
+		cell_image_uint8 = ((cell_image - np.min(cell_image)) / (np.max(cell_image) - np.min(cell_image)) * 255).astype(np.uint8)
+
+		glcm = graycomatrix(cell_image_uint8, distance, angles, symmetric=True, normed=True)
+		contrast = graycoprops(glcm, 'contrast').mean()
+		energy = graycoprops(glcm, 'energy').mean()
+		correlation = graycoprops(glcm, 'correlation').mean()
+		homogeneity = graycoprops(glcm, 'homogeneity').mean()
+
+		return correlation , contrast, energy, homogeneity
+
+
+
+	
+
+
+
+	
+
+	

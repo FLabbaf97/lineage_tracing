@@ -54,11 +54,19 @@ docs/_build/
 
 # data
 src/bread/tests/data/
-data/
+*.h5
+*.npy
+*.nd2
+*.tif
+*.zip
+*.tar
+data-*/*
+# *.pth
 
 # wandb
 src/bread/tests/wandb/
 src/bread/evaluations/wandb/
+notebooks/tracking/scripts/wandb/
 
 # png files in tests
 src/bread/tests/*/*.png
@@ -74,3 +82,46 @@ src/bread/evaluations/*.csv
 src/bread/evaluations/*/*.html
 src/bread/evaluations/*/*/*.html
 src/bread/evaluations/*.html
+
+# results and logs
+# *.csv
+# *.pth
+*.log
+# *.txt
+# *.pt
+# *.json
+# *.pkl
+# *.yaml
+*.html
+*.wandb
+*.yml
+
+# scripts
+# *.sh
+
+# notebooks
+# *.ipynb
+*.nbconvert.ipynb
+
+# wandb
+wandb/
+wandb-*
+
+# others
+*.pyc
+*.csv
+# *.pth
+*.log
+*.txt
+# *.pt
+# *.json
+# *.pkl
+# *.yaml
+*.html
+# *.sh
+*.cfg
+*.toml
+# notebooks
+# bread/notebooks/
+
+
